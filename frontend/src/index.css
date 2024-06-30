@@ -1,0 +1,148 @@
+
+*  {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border: 0;
+  outline: 0;
+  box-sizing: border-box;
+  text-decoration: none;
+  font-family: "Roboto", sans-serif;
+}
+
+button {
+  background: #c1bfbf7e;
+  padding: 0.24rem 1.3rem;
+  border-radius: 0.2rem;
+}
+
+.block {
+  display: block !important;
+}
+.none {
+  display: none !important;
+}
+:root {
+  --color-primary: rgb(2, 52, 202);
+  --color-primary-dark: rgb(18, 56, 170);
+  --hover-color: #e6e5e579;
+  --border-color: #9696969d;
+  --color-bg: #fff;
+  --color-nav: #ffffff;
+  --color-chat: #eeeeee;
+  --color-chat2: #f4f4f4;
+  --color-text: #0f0f0f;
+  --color-text-2: #3a3939;
+  --color-text-dark: #0f0f0ff1;
+  --color-white: #fff;
+  --color-r-bg: rgb(15, 15, 15);
+  --color-tr-bg: #f3f3f3;
+  --transparent: #ffffff00;
+  --color-light-text: rgb(121, 120, 120);
+  --transition: all 0.3s ease;
+  --color-inv: #0f0f0f;
+  --card-color: #f3f3f3;
+  --box-shadow-color: rgba(134, 133, 133, 0.87);
+  --box-shadow-color-2: rgba(209, 209, 209, 0.87);
+}
+ 
+[data-theme='dark'] {
+  --color-text: #fff;
+  --color-text-2: #fff;
+  --color-inv: #fff;
+  --color-nav: #1b1b1b;
+  --color-chat: #222222;
+  --color-chat2: #181818;
+  --hover-color: #5555559d;
+  --border-color: #5555559d;
+  --color-text-dark: #f1f1f1f1;
+  --card-color: #1a1919;
+  --transparent: rgb(9, 9, 12);
+  --color-bg: rgb(9, 9, 12);
+  --color-tr-bg: rgb(19, 18, 18);
+  --color-r-bg: rgb(255, 255, 255);
+  --color-text: rgb(255, 255, 255);
+  --color-light-text: rgb(160, 160, 160);
+  --box-shadow-color: rgba(37, 37, 37, 0.87);
+  --box-shadow-color-2: rgba(37, 37, 37, 0.87);
+}
+
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+  font-size: 0.8rem;
+}
+#root {
+  color: var(--color-text);
+  background-color: var(--color-bg);
+  overflow: hidden;
+  height: 100dvh;
+}
+/* width */
+::-webkit-scrollbar {
+  width: 5px;
+}
+/* Track */
+::-webkit-scrollbar-track {
+  background: #ffffff;
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+  background: var(--color-tr-bg);
+  border-radius: 0.1rem;
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+  background: #191818;
+  cursor: pointer;
+}
+
+.container {
+  width: 100%;
+  margin: 0 auto;
+}
+.hidden {
+  display: none !important;
+}
+
+.color-primary {
+  color: var(--color-primary) !important;
+}
+.white {
+  color: #fff !important;
+}
+.none {
+  display:none;
+}
+.border-radius {
+  border-radius: 0.3rem;
+}
+.bg-color {background: var(--color-bg)}
+.bg-primary {
+  background: var(--color-primary) !important;
+}
+a {
+  text-decoration: none;
+  color: var(--color-white);
+}
+p {
+  font-size: 0.89rem;
+}
+div {
+  font-size: 0.89rem;
+}
+h1 {
+  font-size: 2.8rem;
+}
+h3 {
+  font-size: 1.6rem;
+}
+h4 {
+  font-size: 1.1rem;
+}
+h2 {
+  font-size: 2rem;
+}

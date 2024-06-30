@@ -1,0 +1,111 @@
+.sidenav {
+    width: 20%;
+    border-right: 1px solid var(--hover-color);
+    height:90vh;
+    z-index: 5;
+    padding: 1rem 0.5rem;
+    color: var(--color-text) !important;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    overflow: auto;
+}
+
+.ct-container{
+    margin: 0 0 2rem 0;
+}
+
+.small-trouble {
+    border-radius: 1rem;
+    position: absolute;
+    top: 100%;
+    background-color: var(--color-bg);
+    z-index: 10;
+    width: 60%;
+    right: 0;
+    box-shadow: 1px 1px 4px var(--box-shadow-color);
+    padding: 0.8rem 0.4rem;
+}
+.small-trouble p {
+    color: var(--color-text);
+    display: flex;
+    padding: 0.5rem;
+    gap: 0.6rem;
+    border-radius: 0.5rem;
+    align-items: center;
+    margin: 0.3rem 0;
+}
+.small-trouble p:hover {
+    background: var(--hover-color);
+}
+
+@keyframes sideCloseAnimation{
+    0% {
+        width: 20%;
+    }
+    100% {
+        width: 0;
+    }
+
+}
+@keyframes sideOpenAnimation{
+    0% {
+        width: 0%;
+    }
+    100% {
+        width: 20%;
+    }
+}
+.width-0 {
+    width: 0;
+    overflow: hidden;
+    animation-name: sideCloseAnimation;
+    animation-duration: 0.3s;
+    animation-iteration-count: 1;
+    animation-fill-mode: forwards;
+}
+.width-full {
+    overflow: hidden;
+    animation-name: sideOpenAnimation;
+    animation-duration: 0.3s;
+    animation-iteration-count: 1;
+    animation-fill-mode: forwards;
+}
+.width-full-s {
+    animation-name: sideOpenAnimation;
+    animation-duration: 0.3s;
+    animation-iteration-count: 1;
+    animation-fill-mode: forwards;
+}
+.light-header {
+    color: var(--color-light-text);
+    margin: 0.5rem 0;
+}
+.chd {
+    padding: 0.8rem 0.4rem;
+    border-radius: 0.3rem;
+    margin: 0.2rem 0;
+    transition: var(--transition);
+    cursor: pointer;
+    display: flex;
+    gap: 0.7rem;
+    align-items: center;
+    position: relative;
+    color: var(--color-text);
+}
+.chd:hover  {
+    background-color: var(--hover-color);
+}
+.fst-boy {
+    width: 90%;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: clip;
+}
+
+
+@media screen and (max-width: 900px) {
+    .sidenav {
+        display: none;
+    }
+}

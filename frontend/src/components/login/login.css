@@ -1,0 +1,149 @@
+.login {
+    display: flex;
+}
+@keyframes login-anime {
+    0%  {
+        background: blue;
+    }
+    50% {
+        background: var(--color-primary-dark);
+    }
+    100% {
+        background: var(--color-primary);
+    }
+}
+.lg-left {
+    width: 30%;
+    height: 100vh;
+    border-top-right-radius: 50%;
+    border-bottom-right-radius: 50%;
+    background-color: var(--color-primary);
+    animation: login-anime 2s infinite;
+}
+.lg-right {
+    height: 100vh;
+    width: 70%;
+    padding: 0.3rem 0;
+    overflow: auto;
+}
+.lg-ttl {
+    text-align: right;
+    padding: 0 1rem;
+    width: 90%;
+}
+.lg-boss {
+    display: flex;
+    justify-content: flex-end;
+    width: 90%;   
+}
+.lg-boy {
+    padding: 2rem 1rem;
+    min-height: 50vh;
+    height: fit-content;
+    overflow: auto;
+    margin: 5vh 0;
+    border-radius: 1rem;
+    border: 1px solid var(--border-color);
+    width: 50%;
+}
+.trick {
+    position: relative;
+    width: 100%;
+    background: va;
+}
+.trick span {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    right: 5%;
+    font-size: 1.3rem;
+    color: var(--color-light-text);
+}
+.lg-boy h4 {
+    width: fit-content;
+    margin: 0 auto;
+    font-weight: 600;
+}
+.email-lg, .password-lg {
+    display: flex;
+    flex-direction: column;
+    margin: 1rem 0;
+}
+
+.email-lg label, .password-lg label {
+    margin: 0.5rem 0;
+    font-weight: 600;
+}
+.email-lg input, .password-lg input {
+    padding: 1rem;
+    border-radius: 0.3rem;
+    background: #f1f1f1;
+    width: 100%;
+}
+.sub-log {
+    padding: 1rem;
+    width: 100%;
+    margin: 1rem 0;
+    background: var(--color-primary);
+    color: #fff;
+    font-size: 1.2rem;
+}
+.stress {
+    color: var(--color-primary);
+    width: 100%;
+    display: block;
+    text-align: right;
+}
+.lg-im {
+    display: flex;
+    justify-content: center;
+}
+.lg-logo {
+    width: 5rem;
+    height: 5rem;
+    margin: 1rem 0;
+}
+
+@media screen and (max-width: 1200px) {
+    .lg-boy {
+        width: 65%;
+    }
+}
+@media screen and (max-width: 900px) {
+    .lg-boy {
+        width: 85%;
+    }
+}
+@media screen and (max-width: 768px) {
+    .lg-boy {
+        width: 85%;
+        margin: 1rem auto;
+    }
+    .lg-ttl {
+        text-align: center;
+        width: 100%;
+        font-size: 1.7rem;
+    }
+    .login {
+        justify-content: center;
+    }
+    .login {width: 100%;}
+    .lg-left {
+        display: none;
+    }
+    .lg-right {
+        width: 98%;
+        margin-left: auto;
+        margin-right: auto;
+    }
+    .lg-boss {
+        width: 100%;
+    }
+}
+@media screen and (max-width: 560px) {
+    .lg-boy {
+        width: 95%;
+        margin: 1rem auto;
+    }
+
+}
