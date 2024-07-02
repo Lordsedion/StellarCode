@@ -1,6 +1,6 @@
 from django.urls import path
-from .views import *
+from .views import ValidateAPIKey
 
 urlpatterns = [
-    path("", main)
+    path('validate-key/', ValidateAPIKey.as_view(), name='validate-key'),
 ]
