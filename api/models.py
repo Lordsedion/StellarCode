@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import User
 import random as rnd
 import string
+from .models import *
 # Create your models here.
 
 
@@ -57,6 +58,7 @@ class Room(models.Model):
 class Message(models.Model):
     sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name="sender")
     receiver = models.ForeignKey(User, on_delete=models.CASCADE, related_name="receiver")
+    room = models.ForeignKey(Room, on_delete=models.CASCADE)
     message = models.CharField(max_length=50000)
     created_at = models.DateTimeField(auto_now_add=True)
 
