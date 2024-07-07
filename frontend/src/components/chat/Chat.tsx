@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useContext, useEffect, useRef, useState } from 'react'
 import { FaArrowAltCircleUp, FaKey, FaKeyboard, FaSearch, FaYoutube, FaHammer, FaCode, FaFolder, FaCopy } from 'react-icons/fa';
 import { IoGitNetworkOutline } from "react-icons/io5";
 import { GiBrickWall } from "react-icons/gi";
@@ -8,6 +8,7 @@ import Editor from '@monaco-editor/react';
 import avatar from '../../assets/images/bro.jpg'
 import ai from '../../assets/images/ai.jpg'
 import * as monaco from 'monaco-editor';
+import { getCookie, GlobalContext } from '../../App';
 
 interface codeProps {
   code: string
@@ -19,8 +20,6 @@ interface codeProps {
 const MonacoEditor = ({code, language, mode, name=""}: codeProps) => {
   const [copied, setCopied] = useState(false)
   const rand = Math.floor(Math.random()*1000000000)
-
-
 
   function copyText(str: string) {
     var copyText_: any = document.getElementById(str);
@@ -149,9 +148,11 @@ interface dialogue {
 }
 
 const Dialogue = ({ text }: dialogue) => {
+  const global = useContext(GlobalContext)
+  const pp = global.profilePic!
   return (
     <div className="dialogue">
-      <img src={avatar} alt="AI" />
+      <img src={pp} alt="AI" />
       <p className="dialogue-content">{text}</p>
     </div>
   )
@@ -259,13 +260,14 @@ const Chat = () => {
     selectOnLineNumbers: true
   };
 
+
   return (
     <div className='mainchat'>
       <div className={`sections-main ${data.length <= 0 ? "" : "hidden"}`}>
         <div className="abeg">
           <div className="fst-h">
             <h1 className="main-b-h">
-              <Typewriter text="Hello Lordseidon" speed={500} />
+              <Typewriter text={`Hello ${localStorage.getItem("email")}`} speed={500} />
             </h1>
             <h1 className='sub-b-h'>
               <Typewriter text="What do you want to build today?" speed={300} />

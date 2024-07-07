@@ -70,19 +70,23 @@ class ChatConsumer(WebsocketConsumer):
 class FrontConsumer(WebsocketConsumer):
     def connect(self):
         
-        key = self.scope['query_string'].decode().split('=')[1]
+        self.key = self.scope['query_string'].decode().split('=')[1]
+        self.user = self.scope['user']
+        print(f"User is {self.user}")
 
         self.room_name = "None"
         self.room_group_name = "None"
+        self.is_authenticated = False
 
         self.room_id = "None"
         self.room_group_id = "None"
         
-        if self.verify(key):
+        # if user.is_authenticated:
+        if self.verify(self.key):
             self.accept()
             
 
-            self.room_name = APIKey.objects.filter(public_key=key).values()[0]["secret_key"]
+            self.room_name = APIKey.objects.filter(public_key=self.key).values()[0]["secret_key"]
             self.room_group_name = f'chat_{self.room_name}'
 
             self.room_id = self.scope['url_route']['kwargs']['room_id']
@@ -94,7 +98,7 @@ class FrontConsumer(WebsocketConsumer):
                 self.room_group_id,
                 self.channel_name
                 )
-            print(f"User connected to room: {self.room_id} with key {key}")
+            print(f"User connected to room: {self.room_id} with key {self.key}")
             self.send_previous_messages()
         else:
             self.close()
@@ -116,13 +120,28 @@ class FrontConsumer(WebsocketConsumer):
         if Room.objects.filter(room_id=self.room_id).exists():
             room = Room.objects.filter(room_id=self.room_id)[0]
 
-            #Create message logic here.
+            #Create message logic here. 
+            # new_message = Message.objects.create(
+            #     sender = self.user, 
+            #     receiver = self.user, # Edit later to support the actual sender which should be bot
+            #     room = room,
+            #     message = message
+            # )
+
+            # bot_message = Message.objects.create(
+            #     sender = self.user,
+            #     receiver = self.user,
+            #     room = room,
+            #     message = bot_response
+            # )
 
         async_to_sync(self.channel_layer.group_send) (
             self.room_group_id, 
                 {
                     "type": "chat_message",
-                    "message": message
+                    "message": message,
+                    # "username": self.user.username,
+                    # "timestamp": new_message.timestamp.isoformat()
                 }
         )
         
