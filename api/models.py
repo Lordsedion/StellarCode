@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import User
 import random as rnd
 import string
+from django.utils.text import slugify
 from .models import *
 # Create your models here.
 
@@ -28,6 +29,21 @@ def generate_room_id():
         if Room.objects.filter(room_id=code).count() == 0:
             break
     return code
+
+
+def user_directory_path(instance, fileName):
+    username = slugify(instance.user)
+    return f"images/{username}/{fileName}"
+
+
+class Profile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    email = models.EmailField(max_length=64)
+    image = models.ImageField(upload_to=user_directory_path)
+    credits = models.IntegerField()
+
+    def __str__(self) -> str:
+        return f"Profile of {self.user.email}"
 
 
 class APIKey(models.Model):
