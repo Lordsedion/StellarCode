@@ -15,6 +15,9 @@ interface globalTypes {
 
     accessToken: string
     setAccessToken: (value:any)=>void
+    
+    refreshToken: string
+    setRefreshToken: (value:any)=>void
 
     profilePic: any
     setProfilePic: (value:any)=>void
@@ -65,13 +68,80 @@ function App() {
   const [theme, setTheme] = useState(themeValue)
   const [close, setClose] = useState(false)
 
-  const [accessToken, setAccessToken] = useState<string | null>(getCookie("access"))
+  const [accessToken, setAccessToken] = useState<string | null>(localStorage.getItem("access"))
+  const [refreshToken, setRefreshToken] = useState<string | null>(localStorage.getItem("refresh"))
   const [profilePic, setProfilePic] = useState(localStorage.getItem("pp"))
 
+  async function refresh (token:string) {
+    const options = {
+        method: 'POST',
+        headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: JSON.stringify({"access_token": token})
+    };
+
+    const url = "http://localhost:8000/api/token/refresh"
+    fetch(url, options)
+    .then(response=> {
+        if (!response.ok) {
+            throw new Error("Response is not okay " + response.statusText)
+        }
+        else {
+            return response.json()
+        }
+    })
+    .then(data => {
+        console.log(data)
+        setAccessToken(data["access"])
+        localStorage.setItem("refresh", data["access"])
+      })
+      .catch(error => {
+        console.error('Error:', error); // Handle any errors that occur
+        window.location.assign("http://localhost:8000/login/")
+      });       
+
+}
+  
+  async function verifyAccess (token:string) {
+    const options = {
+        method: 'POST',
+        headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: JSON.stringify({"access_token": token})
+    };
+
+    const url_ = "http://localhost:8000/api/token_verify"
+    fetch(url_, options)
+    .then(response=> {
+        if (!response.ok) {
+            throw new Error("Response is not okay " + response.statusText)
+        }
+        else {
+            return response.json()
+        }
+    })
+    .then(data => {
+        console.log(data)
+        if (data["message"] !== true ) {
+          refresh(refreshToken)
+        }
+        
+      })
+      .catch(error => {
+        console.error('Error:', error); // Handle any errors that occur
+      });       
+
+}
   
   useEffect(()=> {
     document.body?.setAttribute('data-theme', theme)
     setCookie("theme", theme, 180)
+
+    verifyAccess(accessToken)
   }, [[theme]])
 
   return (
@@ -79,7 +149,8 @@ function App() {
       theme, setTheme, 
       close, setClose,
       accessToken, setAccessToken,
-      profilePic, setProfilePic
+      profilePic, setProfilePic,
+      refreshToken, setRefreshToken,
       }}>
         <div className="app">
         <Outlet/>

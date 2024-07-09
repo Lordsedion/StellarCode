@@ -3,7 +3,7 @@ import { FaArrowAltCircleUp, FaKey, FaKeyboard, FaSearch, FaYoutube, FaHammer, F
 import { IoGitNetworkOutline } from "react-icons/io5";
 import { GiBrickWall } from "react-icons/gi";
 import Editor from '@monaco-editor/react';
-
+import { useParams } from 'react-router-dom';
 
 import avatar from '../../assets/images/bro.jpg'
 import ai from '../../assets/images/ai.jpg'
@@ -152,7 +152,7 @@ const Dialogue = ({ text }: dialogue) => {
   const pp = global.profilePic!
   return (
     <div className="dialogue">
-      <img src={pp} alt="AI" />
+      <img src={pp !== "http://localhost:8000/None" ? pp: avatar} alt="AI" />
       <p className="dialogue-content">{text}</p>
     </div>
   )
@@ -217,6 +217,9 @@ interface dataProps {
 
 
 const Chat = () => {
+  const { id } = useParams();
+  const globalContext = useContext(GlobalContext)
+  const accessToken = globalContext.accessToken
   const code = `function copyText(str: string) {
     var copyText: any = document.getElementById(str);
 
@@ -237,16 +240,46 @@ const Chat = () => {
     }
 }`
   const data:Array<dataProps> = [
-    // {
-    //   user: "Using the Newton-Raphson method, write a code that approximates the solution of quadratic quations in python",
-    //   ai: "Using the Newton-Raphson's formula, the approximation of quadratic equations using Python is..."
-    // },
-    // {
-    //   user: "Yes, okay I don't want to use Newton-Raphson's method I want to use Secant method.",
-    //   ai: "For the newton rapson's method, use an inverse trigonemtric solution to discern the root of quations of the fourth order.",
-    //   // ai:''
-    // }
+    {
+      user: "Using the Newton-Raphson method, write a code that approximates the solution of quadratic quations in python",
+      ai: "Using the Newton-Raphson's formula, the approximation of quadratic equations using Python is..."
+    },
+    {
+      user: "Yes, okay I don't want to use Newton-Raphson's method I want to use Secant method.",
+      ai: "For the newton rapson's method, use an inverse trigonemtric solution to discern the root of quations of the fourth order.",
+      // ai:''
+    }
   ]
+
+  async function postData () {
+    const url = "http://localhost:8000/api/view_message"
+    const options = {
+        method: 'POST',
+        headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': getCookie('csrftoken'),
+        "Authorization": `Bearer ${accessToken}`
+        },
+        body: JSON.stringify({"room_id": id})
+    };
+    fetch(url, options)
+    .then(response=> {
+        if (!response.ok) {
+            throw new Error("Response is not okay " + response.statusText)
+        }
+        else {
+            return response.json()
+        }
+    })
+    .then(data => {
+        console.log(data)
+        
+      })
+      .catch(error => {
+        console.error('Error:', error); // Handle any errors that occur
+      });       
+
+}
   const [userChat, setUserChar] = useState("")
   const ref = useRef<HTMLTextAreaElement>(null);
 
@@ -260,6 +293,11 @@ const Chat = () => {
     selectOnLineNumbers: true
   };
 
+  useEffect(()=> {
+    console.log("Hallloooo", id)
+    postData()
+  })
+
 
   return (
     <div className='mainchat'>
@@ -267,7 +305,7 @@ const Chat = () => {
         <div className="abeg">
           <div className="fst-h">
             <h1 className="main-b-h">
-              <Typewriter text={`Hello ${localStorage.getItem("email")}`} speed={500} />
+              <Typewriter text={`Hello ${localStorage.getItem("firstName")}`} speed={500} />
             </h1>
             <h1 className='sub-b-h'>
               <Typewriter text="What do you want to build today?" speed={300} />

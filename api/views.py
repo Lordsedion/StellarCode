@@ -6,10 +6,23 @@ from .models import APIKey
 from .serializers import *
 from django.http import HttpResponse, FileResponse, JsonResponse
 from django.contrib.auth import login, authenticate
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.authentication import JWTAuthentication
+from rest_framework_simplejwt.tokens import AccessToken
+from rest_framework_simplejwt.exceptions import TokenError
+import jwt
+from django.utils import timezone
+from datetime import timedelta
+from datetime import datetime
+from django.core.files import File
+import environ
+
+# Initialize environment variables
+env = environ.Env()
+environ.Env.read_env()
 
 class MyTokenObtainPairView(TokenObtainPairView):
     pass
@@ -32,6 +45,78 @@ def get_email_name(email):
         return match.group(1)
     return None
 
+class VerifyTokenView(generics.CreateAPIView):
+    serializer_class = TokenSerializer
+
+    def post(self, request, *args, **kwargs):
+        serializer = TokenSerializer(data=request.data)
+        print(serializer)
+        if serializer.is_valid():
+            token = serializer.validated_data["access_token"]
+            print(token)
+            try:
+                AccessToken(token=token).verify()
+                return Response({
+                    "message": True
+                }, status=status.HTTP_200_OK)
+            except TokenError as e:
+                return Response({
+                    "message": f"Invalid Token!!! {e} {token}", 
+                }, status=status.HTTP_400_BAD_REQUEST)
+        return Response(
+            {"message": "Invalid token"}
+        , status=status.HTTP_400_BAD_REQUEST)
+
+class TokenView(generics.CreateAPIView):
+    serializer_class = TokenSerializer
+
+    def post(self, request, *args, **kwargs):
+        serializer = TokenSerializer(data=request.data)
+
+        if serializer.is_valid():
+            token = serializer.validated_data["access_token"]
+            try:
+                decoded_token = jwt.decode(token, options={"verify_signature": False})
+                exp = decoded_token.get("exp")
+                if exp: 
+                    expiration_time = datetime.fromtimestamp(exp)
+                    current_time = datetime.now()
+
+                    if expiration_time < current_time:
+                        return Response({
+                            "message": "Expired token, Login to use app",
+                        }, status=status.HTTP_403_FORBIDDEN)
+                    else:
+                        if True:# not User.objects.filter(email=decoded_token["email"]).exists():
+                            user = User.objects.create_user(
+                                generate_username(get_email_name(decoded_token["email"])),
+                                decoded_token["email"],
+                                env("SOCIAL_SECRET")
+                            )
+
+
+                            Profile.objects.create(
+                                user=user,
+                                email=decoded_token["email"],
+                                image=decoded_token["picture"],
+                                credits=1000
+                            )
+
+                            login(request, user)
+                            refresh = RefreshToken.for_user(user)
+
+
+                            return Response({
+                                "access": str(refresh.access_token),
+                                "refresh": str(refresh),
+                                "response": decoded_token,
+                            }, status=status.HTTP_200_OK)
+            except:
+                return Response({
+                    "message": f"Invalid Token!!! {token}", 
+                }, status=status.HTTP_400_BAD_REQUEST)
+        return Response(f"Invalid request!")
+
 
 class RegisterView(generics.CreateAPIView):
     serializer_class = RegisterSerializer
@@ -45,6 +130,11 @@ class RegisterView(generics.CreateAPIView):
                     generate_username(get_email_name(serializer.validated_data["email"])),
                     serializer.validated_data["email"],
                     serializer.validated_data["password"]
+                )
+
+                profile = Profile.objects.create(
+                   serializer.validated_data["email"],
+                    credits=1000
                 )
                 login(request, user)
 
@@ -85,7 +175,7 @@ class UserLoginView(generics.CreateAPIView):
                 # print(f"Hello {user}")
                 try:
                     if user.is_active:
-                        profile_picture = f'http://localhost:8000/{Profile.objects.filter(email=email).values()[0]["image"]}'
+                        profile_picture = f'http://localhost:8000/{Profile.objects.filter(user=user).values()[0]["image"]}'
                         login(request, user)
                         refresh = RefreshToken.for_user(user)
 
@@ -100,6 +190,42 @@ class UserLoginView(generics.CreateAPIView):
                 except Exception as e:
                     print(f"Exception {e}")
         return HttpResponse(f"User does not exist")
+    
+
+class ViewRoom(generics.ListAPIView):
+    serializer_class = ViewRoomSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+
+        one_week_ago = timezone.now() - timedelta(days=7)
+        rooms_by_user = Room.objects.filter(user=user, created_at__gte=one_week_ago).order_by("created_at").values()
+        older_rooms = Room.objects.filter(user=user, created_at__lt=timezone.now() - timedelta(days=7)).order_by("created_at").values()
+        
+        return Response({
+            "user": user.username,
+            "room": rooms_by_user,
+            "older": older_rooms,
+        })
+
+
+class ViewMesage(generics.CreateAPIView):
+    serializer_class = ViewMessageSerializer
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        serializer = ViewMessageSerializer(data=request.data)
+        user = request.user
+
+        room_id = request.data["room_id"]
+        room = Room.objects.filter(room_id=room_id)[0]
+        room_messages = Message.objects.filter(room=room).values()
+
+        return Response({
+            "user": user.username,
+            "message": room_messages
+        })
 
 # class MessageView(generics.ListCreateAPIView):
 #     def post(self,request):

@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useState } from 'react'
 import './sidenav.css'
-import { GlobalContext } from '../../../App'
+import { getCookie, GlobalContext } from '../../../App'
 import { BsThreeDots } from "react-icons/bs";
 import { FaPen } from 'react-icons/fa';
 import { GoTrash } from "react-icons/go";
@@ -41,8 +41,10 @@ const OptionsDrowdown = ({ open, handleClose }: ThemeDropdownProps
 
 interface barProps {
   title: string
+  link: string
+  key?:number
 }
-export const BarItems = ({ title }: barProps) => {
+export const BarItems = ({ title, link, key }: barProps) => {
   const [themeDropdownOpen, setThemeDropdownOpen] = useState(false);
 
   const handleThemeClose = () => {
@@ -50,12 +52,11 @@ export const BarItems = ({ title }: barProps) => {
   };
 
   const handleThemeClick = (event: any) => {
-    console.log("Bosss")
     event.stopPropagation();
     setThemeDropdownOpen(!themeDropdownOpen);
   };
   return (
-    <a href='#' className="chd">
+    <a href={link} className="chd" key={key}>
       <span className='fst-boy'>{title} </span><span onClick={
         (e) => {
           handleThemeClick(e)
@@ -69,10 +70,76 @@ export const BarItems = ({ title }: barProps) => {
   )
 }
 
-const Sidenav = () => {
+interface roomType {
+  name: string
+  id: number
+  room_id: number,
+  created_at: any
+}
 
+const Sidenav = () => {
   const globalContext = useContext(GlobalContext);
   const close = globalContext!.close
+  const accessToken = globalContext!.accessToken
+  const [rooms, setRooms] = useState(
+    [
+      {
+        created_at: "",
+        id: 0,
+        name: "",
+        room_id: "",
+        user_id: 0
+      },
+
+    ]
+  )
+  const [older, setOlder] = useState(
+    [
+      {
+        created_at: "",
+        id: 0,
+        name: "",
+        room_id: "",
+        user_id: 0
+      },
+
+    ]
+  )
+
+  async function getRooms (token:string) {
+    const options = {
+        method: 'GET',
+        headers: {
+        'Content-Type': 'application/json',
+        // 'X-CSRFToken': getCookie('csrftoken'),
+        'Authorization': `Bearer ${token}`
+        },
+    };
+
+    const url_ = "http://localhost:8000/api/room_view"
+    fetch(url_, options)
+    .then(response=> {
+        if (!response.ok) {
+            throw new Error("Response is not okay " + response.statusText)
+        }
+        else {
+            return response.json()
+        }
+    })
+    .then(data => {
+        console.log(data)
+        setRooms(data["room"])
+        setOlder(data["older"])
+      })
+      .catch(error => {
+        console.error('Error:', error); // Handle any errors that occur
+      });       
+
+}
+
+  useEffect(()=> {
+    getRooms(accessToken)
+  }, [])
 
   return (
     <div className={`sidenav ${close ? "width-0" : 'width-full'}`} id='sidenav'>
@@ -80,18 +147,26 @@ const Sidenav = () => {
         <div className="ct-container">
           <p className="light-header">Recent</p>
           <div className="sect-tl-cnt">
-            <BarItems title='Develop a flying jet simulator in c++' />
-            <BarItems title='Configure a UAV handover DQN in python' />
-            <BarItems title='Pytorch code conversion to Tensorflow and Jax ' />
+            {
+              rooms.map(({name, id, room_id, created_at})=> {
+                return (
+                   <BarItems title={name} link={`${room_id}/`} key={id}/>
+                )
+              })
+            }
           </div>
         </div>
 
         <div className="ct-container">
           <p className="light-header">Older</p>
           <div className="sect-tl-cnt">
-            <BarItems title='Develop a flying jet simulator in c++' />
-            <BarItems title='Configure a UAV handover DQN in python' />
-            <BarItems title='Pytorch code conversion to Tensorflow and Jax ' />
+          {
+              older.map(({name, id, room_id, created_at})=> {
+                return (
+                   <BarItems title={name} link={`${room_id}/`} key={id}/>
+                )
+              })
+            }
           </div>
         </div>
 
