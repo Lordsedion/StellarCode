@@ -4,5 +4,5 @@ import re
 
 urlpatterns = [
     path('', main, {'resource': ''}),
-    path('<path:resource>/', main)
+    path('<path:resource>/', main),
 ]

@@ -8,6 +8,13 @@ def get_email_name(email):
         return match.group(1)
     return None
 
+
+class TokenSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SocialLogin
+        fields = ['access_token']
+
+
 class APIKeySerializer(serializers.ModelSerializer):
     class Meta:
         model = APIKey
@@ -60,3 +67,18 @@ class CodeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Code
         fields = ["receiver", "sender", "message"]
+
+
+class ViewRoomSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Room
+        fields = ["name", "room_id", "user", "created_at"]
+
+
+class ViewMessageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Message
+        fields = ["room_id"]
+
+    room_id = serializers.CharField()
+

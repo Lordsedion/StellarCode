@@ -36,10 +36,18 @@ def user_directory_path(instance, fileName):
     return f"images/{username}/{fileName}"
 
 
+class SocialLogin(models.Model):
+    access_token = models.CharField(max_length=3500)
+
+    def __str__(self) -> str:
+        return f"Access token: {self.access_token}"
+
+
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     email = models.EmailField(max_length=64)
-    image = models.ImageField(upload_to=user_directory_path)
+    # image = models.ImageField(upload_to=user_directory_path, default=None, blank=True, null=True)
+    image = models.CharField(max_length=512, default="None")
     credits = models.IntegerField()
 
     def __str__(self) -> str:
@@ -62,13 +70,14 @@ class APIKey(models.Model):
 
 
 class Room(models.Model):
+    name = models.CharField(max_length=150)
     room_id = models.CharField(max_length=64, unique=True, default=generate_room_id)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
 
     
     def __str__(self) -> str:
-        return f"Room created by {self.user.username}"
+        return f"Room {self.name} created by {self.user.username}"
 
 
 class Message(models.Model):

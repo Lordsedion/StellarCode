@@ -7,6 +7,7 @@ import Comb from './components/chat/Comb';
 import Login from './components/login/Login';
 import Signup from './components/login/Signup';
 import { GoogleOAuthProvider } from '@react-oauth/google';
+import Chat from './components/chat/Chat';
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
@@ -16,7 +17,10 @@ root.render(
     <Router>
     <Routes>
       <Route path='' element={<App/>}>
-      <Route path='' element={<Comb/>}/>
+      <Route path='' element={<Comb/>}>
+          <Route path='chat/:id' element={<Chat/>}/>
+
+      </Route>
       <Route path='login' element={<Login/>}/>
       <Route path='signup' element={<Signup/>}/>
       </Route>

@@ -293,7 +293,7 @@ const Nav = () => {
                             
                         </div>
                         <div className="avatar">
-                            <img src={pp} alt="Image" className='avatar-img' onClick={handleAvatarClick} />
+                            <img src={pp !== "http://localhost:8000/None" ? pp: avatar} alt="Image" className='avatar-img' onClick={handleAvatarClick} />
                             <div className={`modal-nav-content ${dropdownOpen ? '' : 'hidden'}`} id='modal-nav'>
                                 <div className="nav-s-list">
                                     <p><span><AiOutlineRobot /></span> <div>MY GPT</div></p>
