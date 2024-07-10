@@ -15,6 +15,9 @@
     margin: 0 0 2rem 0;
 }
 
+.hoverColor {
+    background: var(--hover-color);
+}
 .small-trouble {
     border-radius: 1rem;
     position: absolute;

@@ -42,9 +42,9 @@ const OptionsDrowdown = ({ open, handleClose }: ThemeDropdownProps
 interface barProps {
   title: string
   link: string
-  key?:number
 }
-export const BarItems = ({ title, link, key }: barProps) => {
+export const BarItems = ({ title, link}: barProps) => {
+  const globalContext = useContext(GlobalContext)
   const [themeDropdownOpen, setThemeDropdownOpen] = useState(false);
 
   const handleThemeClose = () => {
@@ -56,7 +56,7 @@ export const BarItems = ({ title, link, key }: barProps) => {
     setThemeDropdownOpen(!themeDropdownOpen);
   };
   return (
-    <a href={link} className="chd" key={key}>
+    <a href={`/chat/${link}`} className={`chd ${globalContext.knowActive === link ? "hoverColor": ""}`}>
       <span className='fst-boy'>{title} </span><span onClick={
         (e) => {
           handleThemeClick(e)

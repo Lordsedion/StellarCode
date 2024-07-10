@@ -218,7 +218,10 @@ interface dataProps {
 
 const Chat = () => {
   const { id } = useParams();
+  const [chat, setChat] = useState([])
   const globalContext = useContext(GlobalContext)
+  const setKnowActive = globalContext.setKnowActive
+  setKnowActive(`${id}/`)
   const accessToken = globalContext.accessToken
   const code = `function copyText(str: string) {
     var copyText: any = document.getElementById(str);
@@ -251,6 +254,7 @@ const Chat = () => {
     }
   ]
 
+  
   async function postData () {
     const url = "http://localhost:8000/api/view_message"
     const options = {
@@ -273,14 +277,13 @@ const Chat = () => {
     })
     .then(data => {
         console.log(data)
-        
+        setChat(data["message"])
       })
       .catch(error => {
         console.error('Error:', error); // Handle any errors that occur
-      });       
-
+      });
 }
-  const [userChat, setUserChar] = useState("")
+  const [userChat, setUserChat] = useState("")
   const ref = useRef<HTMLTextAreaElement>(null);
 
   const handleInput = (e: any) => {
@@ -293,15 +296,58 @@ const Chat = () => {
     selectOnLineNumbers: true
   };
 
+const socketRef = useRef(null)
+const inputRef = useRef(null); 
+const [messages, setMessages] = useState([])
+
+
   useEffect(()=> {
-    console.log("Hallloooo", id)
-    postData()
-  })
+    console.log(`ws://localhost:8001/ws/chat/${id}/?api_key=${globalContext.apiKey}`)
+    socketRef.current = new WebSocket(`ws://localhost:8001/ws/chat/${id}/?api_key=${globalContext.apiKey}`);
+
+    // 2. Handle the connection open event
+    socketRef.current.onopen = () => {
+      console.log('Connected to the WebSocket server');
+    };
+
+    // 3. Handle incoming messages
+    socketRef.current.onmessage = (event:any) => {
+      const newMessage = event.data;
+      setMessages((prevMessages) => [...prevMessages, JSON.parse(event.data)]);
+      console.log("Messages", messages, event.data)
+    };
+
+    // 4. Handle connection errors
+    socketRef.current.onerror = (error:any) => {
+      console.error('WebSocket error:', error);
+    };
+
+    // 5. Handle connection closure
+    socketRef.current.onclose = () => {
+      console.log('WebSocket connection closed');
+    };
+
+    return () => {
+      socketRef.current.close()
+    };
+
+    // postData()
+  }, [globalContext.apiKey])
+
+  const sendMessage = () => {
+    if (socketRef.current.readyState === WebSocket.OPEN) {
+      const messageData = {
+        "message": userChat,
+      };
+      socketRef.current.send(JSON.stringify(messageData));
+      setUserChat('');
+    }
+  }
 
 
   return (
-    <div className='mainchat'>
-      <div className={`sections-main ${data.length <= 0 ? "" : "hidden"}`}>
+    <div className='mainchat' onClick={()=> {console.log("Messages", messages)}}>
+      <div className={`sections-main ${messages.length <= 0 ? "" : "hidden"}`}>
         <div className="abeg">
           <div className="fst-h">
             <h1 className="main-b-h">
@@ -328,7 +374,7 @@ const Chat = () => {
                 ref={ref}
                 spellCheck={false}
                 onChange={(e) => {
-                  setUserChar(e.target.value)
+                  setUserChat(e.target.value)
                 }}
                 placeholder='Enter a prompt here...'
                 value={userChat}
@@ -336,33 +382,35 @@ const Chat = () => {
               >
 
               </textarea>
-              <span className={`${userChat === "" ? "color-grey" : ""}`}><FaArrowAltCircleUp /></span>
+              <span className={`${userChat === "" ? "color-grey" : ""}`} onClick={sendMessage}><FaArrowAltCircleUp /></span>
             </div>
           </form>
         </div>
-      </div>
-      
+      </div>      
       {
-        data.length > 0 && (
-          <div className={`sections-chat ${data.length > 0 ? "" : "hidden"}`}>
+        messages.length > 0 && (
+          <div className={`sections-chat ${messages.length > 0 ? "" : "hidden"}`}>
         {
-          data.map(({ user, ai }, index) => {
+          messages.map(({ created_at, id, message, receiver, sender }) => {
             return (
               <>
-                <Dialogue text={user} key={index} />
-                <AiDialogue text={ai} key={index} />
+              {
+                receiver === "Stellarcode" ? <Dialogue text={message} key={id} /> : 
+                
+                <AiDialogue text={message} key={id} />
+              }
               </>
             )
           })
         }
-        <div className="code-editor">
+        {/* <div className="code-editor">
             <MonacoEditor
             code={code}
             language="javascript"
             mode='vs-dark'
             name='script.js'
           />
-        </div>
+        </div> */}
         
         <div className="bosslion">
           <div className="chat-sect-in">
@@ -373,7 +421,7 @@ const Chat = () => {
                   spellCheck={false}
                   ref={ref}
                   onChange={(e) => {
-                    setUserChar(e.target.value)
+                    setUserChat(e.target.value)
                   }}
                   placeholder='Enter a prompt here...'
                   value={userChat}
@@ -381,7 +429,7 @@ const Chat = () => {
                 >
 
                 </textarea>
-                <span className={`${userChat === "" ? "color-grey" : ""}`}><FaArrowAltCircleUp /></span>
+                <span className={`${userChat === "" ? "color-grey" : ""}`} onClick={()=> {sendMessage()}}><FaArrowAltCircleUp /></span>
               </div>
             </form>
           </div>

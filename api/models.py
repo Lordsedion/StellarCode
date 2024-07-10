@@ -43,6 +43,14 @@ class SocialLogin(models.Model):
         return f"Access token: {self.access_token}"
 
 
+class TokenModel(models.Model):
+    access_token = models.CharField(max_length=3500)
+    refresh_token = models.CharField(max_length=3500)
+
+    def __str__(self) -> str:
+        return f"Access token: {self.access_token}"
+
+
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     email = models.EmailField(max_length=64)
