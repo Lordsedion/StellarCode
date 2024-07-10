@@ -11,7 +11,7 @@ from django.views.decorators.csrf import csrf_exempt
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.authentication import JWTAuthentication
-from rest_framework_simplejwt.tokens import AccessToken
+from rest_framework_simplejwt.tokens import AccessToken, RefreshToken
 from rest_framework_simplejwt.exceptions import TokenError
 import jwt
 from django.utils import timezone
@@ -46,23 +46,43 @@ def get_email_name(email):
     return None
 
 class VerifyTokenView(generics.CreateAPIView):
-    serializer_class = TokenSerializer
+    serializer_class = GetTokenSerializer
 
     def post(self, request, *args, **kwargs):
-        serializer = TokenSerializer(data=request.data)
-        print(serializer)
+        serializer = GetTokenSerializer(data=request.data)
+        print(serializer, serializer.is_valid(), serializer.validated_data)
         if serializer.is_valid():
             token = serializer.validated_data["access_token"]
-            print(token)
+            refresh_token = serializer.validated_data["refresh_token"]
+
+            decoded_token = jwt.decode(token, options={"verify_signature": False})
+            user = User.objects.filter(id=decoded_token['user_id'])[0]
+            api_key = APIKey.objects.filter(user=user).values()[0]["public_key"]
+
             try:
                 AccessToken(token=token).verify()
                 return Response({
+                    "username": user.username,
+                    "apiKey": api_key,
                     "message": True
                 }, status=status.HTTP_200_OK)
             except TokenError as e:
-                return Response({
-                    "message": f"Invalid Token!!! {e} {token}", 
-                }, status=status.HTTP_400_BAD_REQUEST)
+                print(e, token)
+                try:
+                    RefreshToken(token=refresh_token).verify()
+                    access_token = RefreshToken(token=refresh_token).access_token
+                    print(f"I'm alive!!! {access_token}")
+                    return Response({
+                        "username": user.username,
+                        "apiKey": api_key,
+                        "message": "reset",
+                        "token": f"{access_token}"
+                    }, status=status.HTTP_201_CREATED) 
+                except:
+                    print("Firte fire fire")
+                    return Response({
+                        "message": f"Invalid Token!!! {e} {token}", 
+                    }, status=status.HTTP_400_BAD_REQUEST)
         return Response(
             {"message": "Invalid token"}
         , status=status.HTTP_400_BAD_REQUEST)
@@ -215,7 +235,6 @@ class ViewMesage(generics.CreateAPIView):
     permission_classes = [AllowAny]
 
     def post(self, request):
-        serializer = ViewMessageSerializer(data=request.data)
         user = request.user
 
         room_id = request.data["room_id"]

@@ -15,6 +15,12 @@ class TokenSerializer(serializers.ModelSerializer):
         fields = ['access_token']
 
 
+class GetTokenSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TokenModel
+        fields = ['access_token', "refresh_token"]
+
+
 class APIKeySerializer(serializers.ModelSerializer):
     class Meta:
         model = APIKey
