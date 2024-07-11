@@ -164,29 +164,33 @@ class FrontConsumer(WebsocketConsumer):
     
     def chat_message(self, event):
         message = event["message"]
-        room = Room.objects.filter(room_id=self.room_id)[0]
-        bot = Message.objects.filter(room=room).order_by("-created_at")[0]
-        messages = Message.objects.filter(room=room).order_by("-created_at")[1]
 
-        fr_response = simple_bot(self.bot_response)
+        try:
+            room = Room.objects.filter(room_id=self.room_id)[0]
+            bot = Message.objects.filter(room=room).order_by("-created_at")[0]
+            messages = Message.objects.filter(room=room).order_by("-created_at")[1]
 
-        self.send(text_data=json.dumps({
-                'message': messages.message,
-                "sender": messages.sender.username,
-                "receiver": messages.receiver.username,
-                "created_at": messages.created_at.isoformat(),
-                "id": messages.id,
-                "room_id": messages.room_id
-            }))
-        
-        self.send(text_data=json.dumps({
-                'message': bot.message,
-                "sender": bot.sender.username,
-                "receiver": bot.receiver.username,
-                "created_at": bot.created_at.isoformat(),
-                "id": bot.id,
-                "room_id": bot.room_id
-            }))
+            fr_response = simple_bot(self.bot_response)
+
+            self.send(text_data=json.dumps({
+                    'message': messages.message,
+                    "sender": messages.sender.username,
+                    "receiver": messages.receiver.username,
+                    "created_at": messages.created_at.isoformat(),
+                    "id": messages.id,
+                    "room_id": messages.room_id
+                }))
+            
+            self.send(text_data=json.dumps({
+                    'message': bot.message,
+                    "sender": bot.sender.username,
+                    "receiver": bot.receiver.username,
+                    "created_at": bot.created_at.isoformat(),
+                    "id": bot.id,
+                    "room_id": bot.room_id
+                }))
+        except:
+            print("Nothing found here")
 
     
     def verify(self, key):
@@ -194,16 +198,19 @@ class FrontConsumer(WebsocketConsumer):
     
 
     def send_previous_messages(self):
-        room = Room.objects.filter(room_id=self.room_id)[0]
-        previous_messages = Message.objects.filter(room=room).order_by("created_at")
-        for message in previous_messages:
-            self.send(text_data=json.dumps({
-                'message': message.message,
-                "sender": message.sender.username,
-                "receiver": message.receiver.username,
-                "created_at": message.created_at.isoformat(),
-                "id": message.id,
-                "room_id": message.room_id
-            }))
+        try:
+            room = Room.objects.filter(room_id=self.room_id)[0]
+            previous_messages = Message.objects.filter(room=room).order_by("created_at")
+            for message in previous_messages:
+                self.send(text_data=json.dumps({
+                    'message': message.message,
+                    "sender": message.sender.username,
+                    "receiver": message.receiver.username,
+                    "created_at": message.created_at.isoformat(),
+                    "id": message.id,
+                    "room_id": message.room_id
+                }))
+        except:
+            print("No item found in this room")
     
 

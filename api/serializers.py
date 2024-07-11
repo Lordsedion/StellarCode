@@ -78,7 +78,7 @@ class CodeSerializer(serializers.ModelSerializer):
 class ViewRoomSerializer(serializers.ModelSerializer):
     class Meta:
         model = Room
-        fields = ["name", "room_id", "user", "created_at"]
+        fields = ["name", "room_id", "created_at"]
 
 
 class ViewMessageSerializer(serializers.ModelSerializer):

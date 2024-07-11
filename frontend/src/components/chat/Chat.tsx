@@ -217,7 +217,9 @@ interface dataProps {
 
 
 const Chat = () => {
-  const { id } = useParams();
+  let { id } = useParams();
+
+  const [id_, setId] = useState(id)
   const [chat, setChat] = useState([])
   const globalContext = useContext(GlobalContext)
   const setKnowActive = globalContext.setKnowActive
@@ -255,6 +257,36 @@ const Chat = () => {
   ]
 
   
+  async function createRoom () {
+    const url = "http://localhost:8000/api/create_room"
+    const options = {
+        method: 'POST',
+        headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': getCookie('csrftoken'),
+        "Authorization": `Bearer ${accessToken}`
+        },
+        body: JSON.stringify({
+          "name": "New_room"
+        })
+    };
+    fetch(url, options)
+    .then(response=> {
+        if (!response.ok) {
+            throw new Error("Response is not okay " + response.statusText)
+        }
+        else {
+            return response.json()
+        }
+    })
+    .then(data => {
+        console.log(data)
+        setId(prev=>data["room_id"])
+      })
+      .catch(error => {
+        console.error('Error:', error); // Handle any errors that occur
+      });
+}
   async function postData () {
     const url = "http://localhost:8000/api/view_message"
     const options = {
@@ -297,52 +329,153 @@ const Chat = () => {
   };
 
 const socketRef = useRef(null)
-const inputRef = useRef(null); 
 const [messages, setMessages] = useState([])
 
+useEffect(() => {
+  const targetElement = document.querySelector("#sectionChat");
+
+  if (targetElement !== null) {
+      targetElement.scrollTo(0, targetElement.scrollHeight)
+  }
+
+  // Add keypress event listener to the input field
+  const input = ref.current;
+  const handleKeyPress = (event:any) => {
+    if (event.key === 'Enter' && !event.shiftKey && userChat.trim() !=="") {
+      sendMessage();
+    }
+  };
+
+  input.addEventListener('keypress', handleKeyPress);
+
+  // Clean up the event listener on component unmount
+  return () => {
+    input.removeEventListener('keypress', handleKeyPress);
+  };
+}, [userChat, messages, id_]);
 
   useEffect(()=> {
-    console.log(`ws://localhost:8001/ws/chat/${id}/?api_key=${globalContext.apiKey}`)
-    socketRef.current = new WebSocket(`ws://localhost:8001/ws/chat/${id}/?api_key=${globalContext.apiKey}`);
+    console.log(`ws://localhost:8001/ws/chat/${id_}/?api_key=${globalContext.apiKey}`, id, id_)
+    if (id_ !== "new") {
+      socketRef.current = new WebSocket(`ws://localhost:8001/ws/chat/${id_}/?api_key=${globalContext.apiKey}`);
 
-    // 2. Handle the connection open event
-    socketRef.current.onopen = () => {
-      console.log('Connected to the WebSocket server');
-    };
+      // 2. Handle the connection open event
+      socketRef.current.onopen = () => {
+        console.log('Connected to the WebSocket server');
+      };
+  
+      // 3. Handle incoming messages
+      socketRef.current.onmessage = (event:any) => {
+        setMessages((prevMessages) => [...prevMessages, JSON.parse(event.data)]);
+        console.log("Messages", messages, event.data)
+      };
+  
+      // 4. Handle connection errors
+      socketRef.current.onerror = (error:any) => {
+        console.error('WebSocket error:', error);
+      };
+  
+      // 5. Handle connection closure
+      socketRef.current.onclose = () => {
+        console.log('WebSocket connection closed');
+      };
 
-    // 3. Handle incoming messages
-    socketRef.current.onmessage = (event:any) => {
-      const newMessage = event.data;
-      setMessages((prevMessages) => [...prevMessages, JSON.parse(event.data)]);
-      console.log("Messages", messages, event.data)
-    };
-
-    // 4. Handle connection errors
-    socketRef.current.onerror = (error:any) => {
-      console.error('WebSocket error:', error);
-    };
-
-    // 5. Handle connection closure
-    socketRef.current.onclose = () => {
-      console.log('WebSocket connection closed');
-    };
-
-    return () => {
-      socketRef.current.close()
-    };
+      // sendMessage2()
+  
+      return () => {
+        socketRef.current.close()
+      };
+    }
 
     // postData()
-  }, [globalContext.apiKey])
+  }, [globalContext.apiKey, id_])
 
-  const sendMessage = () => {
+
+  const sendMessage = async () => {
+    if (id_ === "new") {
+      if (globalContext.apiKey !== "" && userChat.trim() !== "") {
+        const newRoomId = await createRoom();
+        socketRef.current = new WebSocket(`ws://localhost:8001/ws/chat/${newRoomId}/?api_key=${globalContext.apiKey}`);
+  
+        socketRef.current.onopen = () => {
+          console.log('Connected to the WebSocket server in new room');
+          sendMessageToSocket();
+        };
+  
+        socketRef.current.onmessage = (event: any) => {
+          setMessages((prevMessages) => [...prevMessages, JSON.parse(event.data)]);
+          console.log("Messages", messages, event.data);
+        };
+  
+        socketRef.current.onerror = (error: any) => {
+          console.error('WebSocket error:', error);
+        };
+  
+        socketRef.current.onclose = () => {
+          console.log('WebSocket connection closed');
+        };
+      }
+    } else {
+      sendMessageToSocket();
+    }
+  }
+  
+  const sendMessageToSocket = () => {
     if (socketRef.current.readyState === WebSocket.OPEN) {
       const messageData = {
         "message": userChat,
       };
       socketRef.current.send(JSON.stringify(messageData));
       setUserChat('');
+    } else {
+      socketRef.current.onopen = () => {
+        const messageData = {
+          "message": userChat,
+        };
+        socketRef.current.send(JSON.stringify(messageData));
+        setUserChat('');
+      };
     }
-  }
+  };
+
+  // const sendMessage = () => {
+  //   if (id_ !== "new") {
+  //     if (socketRef.current.readyState === WebSocket.OPEN) {
+  //     const messageData = {
+  //       "message": userChat,
+  //     };
+  //     socketRef.current.send(JSON.stringify(messageData));
+  //     setUserChat('');
+  //   }
+  //   }
+  //   else {
+  //     if (globalContext.apiKey !== "" && userChat.trim() !== "") {
+  //       console.log("Boss boy")
+  //       createRoom()
+  //       // sendMessage2()
+  //       console.log("id_____", id_)
+  //     }
+  //   }
+    
+  // }
+  // const sendMessage2 = () => {
+  //   console.log("Entry  pig", userChat.trim()!=="", id_!=="new")
+  //   if (id_ !== "new" && userChat.trim() !== "") {
+  //     console.log("Neat pig")
+
+  //     if (socketRef.current.readyState === WebSocket.OPEN) {
+  //     const messageData = {
+  //       "message": userChat,
+  //     };
+  //     socketRef.current.send(JSON.stringify(messageData));
+  //     setUserChat('');
+  //   }
+  //   }
+  //   else {
+  //     console.log("Filthy pig")
+  //   }
+    
+  // }
 
 
   return (
@@ -389,7 +522,7 @@ const [messages, setMessages] = useState([])
       </div>      
       {
         messages.length > 0 && (
-          <div className={`sections-chat ${messages.length > 0 ? "" : "hidden"}`}>
+          <div className={`sections-chat ${messages.length > 0 ? "" : "hidden"}`} id='sectionChat'>
         {
           messages.map(({ created_at, id, message, receiver, sender }) => {
             return (
