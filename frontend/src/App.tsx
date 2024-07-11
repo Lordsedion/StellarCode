@@ -64,17 +64,16 @@ export function getCookie(name:string) {
 
 
 function App() {
-  let themeValue = "light";
   let access = getCookie("access");
 
-  if (getCookie("theme") !== null) {
-    themeValue = getCookie("theme")
+  if (localStorage.getItem("theme") !== null) {
+    localStorage.getItem("theme")
   }  
   else {
-    setCookie("theme", "dark", 180)
+    localStorage.setItem("theme", "dark")
   }
   
-  const [theme, setTheme] = useState(themeValue)
+  const [theme, setTheme] = useState(localStorage.getItem("theme"))
   const [close, setClose] = useState(false)
 
   const [username, setUserName] = useState("")

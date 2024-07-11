@@ -49,8 +49,8 @@ const ThemeDropdown = ({ open, handleClose }: ThemeDropdownProps) => {
 
     return (
         <div className={`theme-dropdown ${open ? '' : 'hidden'}`}>
-            <div className="dropdown-item" onClick={() => { setTheme("light") }}>Light {theme==="light" && (<FaCheck/>)}</div>
-            <div className="dropdown-item" onClick={() => { setTheme("dark") }}>Dark {theme==="dark" && (<FaCheck/>)}</div>
+            <div className="dropdown-item" onClick={() => { setTheme("light"); localStorage.setItem("theme", "light") }}>Light {theme==="light" && (<FaCheck/>)}</div>
+            <div className="dropdown-item" onClick={() => { setTheme("dark"); localStorage.setItem("theme", "dark") }}>Dark {theme==="dark" && (<FaCheck/>)}</div>
         </div>
     );
 };
@@ -197,7 +197,6 @@ const Nav = () => {
 
 
     useEffect(() => {
-
         if (close) {
             wait()
         }
@@ -281,13 +280,13 @@ const Nav = () => {
                 <div className="nav-container">
                     <div className={`nav-left ${close ? "width-0" : "width-full-s"}`} id='bossboss'>
                         <p className="fl-1" onClick={() => { setClose(!close) }}><span><FiSidebar /></span> <div className='goat'> <span></span>Close sidebar</div></p>
-                        <p className="fl-2"><span><IoCreateOutline /></span> <div className='goat'> <span></span>New project</div></p>
+                        <a href='/chat/new/'><p className="fl-2"><span><IoCreateOutline /></span> <div className='goat'> <span></span>New project</div></p></a>
                     </div>
                     <div className={`nav-right ${close ? 'f-wd-1' : 'aggress'}`}>
                         <div className="n-right-l">
                             <div className={`nav-left-r ${close ? '' : 'hidden'}`}>
                                 <p className="fl-1" onClick={() => { setClose(!close) }}><span><FiSidebar /></span> <div className='goat'> <span></span>Open sidebar</div></p>
-                                <p className="fl-2"><span><IoCreateOutline /></span> <div className='goat'> <span></span>New project</div></p>
+                                <a href='/chat/new/'><p className="fl-2"><span><IoCreateOutline /></span> <div className='goat'> <span></span>New project</div></p></a>
                             </div>
                             <p className='cat'>Stellar <div className='agle'><FaAngleDown /></div></p>
                             

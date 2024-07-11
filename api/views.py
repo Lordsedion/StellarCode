@@ -232,7 +232,7 @@ class ViewRoom(generics.ListAPIView):
 
 class ViewMesage(generics.CreateAPIView):
     serializer_class = ViewMessageSerializer
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
 
     def post(self, request):
         user = request.user
@@ -244,6 +244,29 @@ class ViewMesage(generics.CreateAPIView):
         return Response({
             "user": user.username,
             "message": room_messages
+        })
+    
+
+
+class CreateRoom(generics.CreateAPIView):
+    serializer_class = ViewRoomSerializer
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        user = request.user
+        print(f"User o {user}")
+
+        room_name = f'New Room {Room.objects.filter(user=request.user).order_by("-created_at").values()[0]["id"]}'
+
+        room = Room.objects.create(
+            name = room_name,
+            user = request.user
+        )
+
+        return Response({
+            "room_id": room.room_id,
+            "name": room.name,
+            "user": room.user.username
         })
 
 # class MessageView(generics.ListCreateAPIView):
