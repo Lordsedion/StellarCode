@@ -219,12 +219,18 @@ interface dataProps {
 const Chat = () => {
   let { id } = useParams();
 
-  const [id_, setId] = useState(id)
+  // const [id_, setId] = useState(id)
   const [chat, setChat] = useState([])
-  const globalContext = useContext(GlobalContext)
-  const setKnowActive = globalContext.setKnowActive
+  const {id_, setId, accessToken, setKnowActive, apiKey} = useContext(GlobalContext)
+  // const id_ = globalContext.id_
+  // const setId = globalContext.setId
+  // const accessToken = globalContext.accessToken
+  // const setKnowActive = globalContext.setKnowActive
+  if (id !== "new") {
+    setId(id)
+  }
+  
   setKnowActive(`${id}/`)
-  const accessToken = globalContext.accessToken
   const code = `function copyText(str: string) {
     var copyText: any = document.getElementById(str);
 
@@ -281,7 +287,7 @@ const Chat = () => {
     })
     .then(data => {
         console.log(data)
-        setId(prev=>data["room_id"])
+        setId((prev:any)=>data["room_id"])
       })
       .catch(error => {
         console.error('Error:', error); // Handle any errors that occur
@@ -355,9 +361,9 @@ useEffect(() => {
 }, [userChat, messages, id_]);
 
   useEffect(()=> {
-    console.log(`ws://localhost:8001/ws/chat/${id_}/?api_key=${globalContext.apiKey}`, id, id_)
+    console.log(`ws://localhost:8001/ws/chat/${id_}/?api_key=${apiKey}`, id, id_)
     if (id_ !== "new") {
-      socketRef.current = new WebSocket(`ws://localhost:8001/ws/chat/${id_}/?api_key=${globalContext.apiKey}`);
+      socketRef.current = new WebSocket(`ws://localhost:8001/ws/chat/${id_}/?api_key=${apiKey}`);
 
       // 2. Handle the connection open event
       socketRef.current.onopen = () => {
@@ -388,14 +394,14 @@ useEffect(() => {
     }
 
     // postData()
-  }, [globalContext.apiKey, id_])
+  }, [apiKey, id_])
 
 
   const sendMessage = async () => {
     if (id_ === "new") {
-      if (globalContext.apiKey !== "" && userChat.trim() !== "") {
+      if (apiKey !== "" && userChat.trim() !== "") {
         const newRoomId = await createRoom();
-        socketRef.current = new WebSocket(`ws://localhost:8001/ws/chat/${newRoomId}/?api_key=${globalContext.apiKey}`);
+        socketRef.current = new WebSocket(`ws://localhost:8001/ws/chat/${newRoomId}/?api_key=${apiKey}`);
   
         socketRef.current.onopen = () => {
           console.log('Connected to the WebSocket server in new room');
@@ -479,7 +485,7 @@ useEffect(() => {
 
 
   return (
-    <div className='mainchat' onClick={()=> {console.log("Messages", messages)}}>
+    <div className='mainchat'>
       <div className={`sections-main ${messages.length <= 0 ? "" : "hidden"}`}>
         <div className="abeg">
           <div className="fst-h">
@@ -522,7 +528,7 @@ useEffect(() => {
       </div>      
       {
         messages.length > 0 && (
-          <div className={`sections-chat ${messages.length > 0 ? "" : "hidden"}`} id='sectionChat'>
+          <div className={`sections-chat ${messages.length > 0 ? "" : "hidden"}`} id='sectionChat' key={messages.length}>
         {
           messages.map(({ created_at, id, message, receiver, sender }) => {
             return (

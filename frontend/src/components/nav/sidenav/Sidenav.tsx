@@ -90,7 +90,6 @@ const Sidenav = () => {
         room_id: "",
         user_id: 0
       },
-
     ]
   )
   const [older, setOlder] = useState(
@@ -139,7 +138,7 @@ const Sidenav = () => {
 
   useEffect(()=> {
     getRooms(accessToken)
-  }, [])
+  }, [globalContext.id_])
 
   return (
     <div className={`sidenav ${close ? "width-0" : 'width-full'}`} id='sidenav'>

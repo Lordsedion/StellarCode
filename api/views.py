@@ -220,7 +220,7 @@ class ViewRoom(generics.ListAPIView):
         user = request.user
 
         one_week_ago = timezone.now() - timedelta(days=7)
-        rooms_by_user = Room.objects.filter(user=user, created_at__gte=one_week_ago).order_by("created_at").values()
+        rooms_by_user = Room.objects.filter(user=user, created_at__gte=one_week_ago).order_by("-created_at").values()
         older_rooms = Room.objects.filter(user=user, created_at__lt=timezone.now() - timedelta(days=7)).order_by("created_at").values()
         
         return Response({
