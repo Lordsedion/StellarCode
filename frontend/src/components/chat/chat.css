@@ -13,7 +13,10 @@
 .main-b-h {
     color: var(--color-primary);
 }
-
+.section-timeline {
+    overflow: auto;
+    height: 90%;
+}
 .sub-b-h {
     color: var(--color-light-text);
 }

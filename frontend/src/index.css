@@ -81,7 +81,7 @@ body {
 }
 /* width */
 ::-webkit-scrollbar {
-  width: 5px;
+  width: 2px;
 }
 /* Track */
 ::-webkit-scrollbar-track {
@@ -90,7 +90,7 @@ body {
 
 /* Handle */
 ::-webkit-scrollbar-thumb {
-  background: var(--color-tr-bg);
+  background: #ccc;
   border-radius: 0.1rem;
 }
 

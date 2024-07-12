@@ -3,6 +3,7 @@ from channels.generic.websocket import WebsocketConsumer
 from .models import *
 from asgiref.sync import async_to_sync
 from .bot import simple_bot
+from .bots.bot import default_bot
 
 class ChatConsumer(WebsocketConsumer):
     def connect(self):
@@ -41,7 +42,7 @@ class ChatConsumer(WebsocketConsumer):
         text_data_json = json.loads(text_data)
         message = text_data_json['message']
 
-        bot_response = simple_bot(message)
+        bot_response = default_bot(message)
 
         async_to_sync(self.channel_layer.group_send) (
             self.room_group_name, 
@@ -150,13 +151,15 @@ class FrontConsumer(WebsocketConsumer):
                 }
         )
         
+        bot_res = default_bot(message)
         async_to_sync(self.channel_layer.group_send) (
+            
             self.room_group_name, 
                 {
                     "type": "chat_message",
                     "message": {
                         "user": message,
-                        "bot": self.bot_response,
+                        "bot": bot_res,
                     }
                 }
         )

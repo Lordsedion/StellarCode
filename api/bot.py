@@ -1,7 +1,21 @@
-# bot.py
-def simple_bot(message):
+import google.generativeai as genai
+import json
+
+def simple_bot(message=""):
     # For now, the bot just responds with "Hi" to any message.
-    return "Hi"
+    code = genai.GenerativeModel(
+        model_name='gemini-1.5-flash',
+        system_instruction="""Give an high-level overview on how you will solve this problem but do not write code!!!
+        Do not give any advice, do not go into the nitty gritty details. Give an high-level explanation of 
+        how you will do the planning and all. And be brief abot it."""
+        )
+
+
+    response_2 = code.generate_content(message)
+    print(response_2.text)
+    # print(json.loads(response_2.text[8:-3]))
+
+    return response_2.text
 
 
 

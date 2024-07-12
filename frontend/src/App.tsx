@@ -30,6 +30,9 @@ interface globalTypes {
 
     profilePic: any
     setProfilePic: (value:any)=>void
+    
+    id_: any
+    setId: (value:any)=>void
 }
 
 export const GlobalContext = createContext<globalTypes | undefined>(undefined)
@@ -64,8 +67,6 @@ export function getCookie(name:string) {
 
 
 function App() {
-  let access = getCookie("access");
-
   if (localStorage.getItem("theme") !== null) {
     localStorage.getItem("theme")
   }  
@@ -75,7 +76,7 @@ function App() {
   
   const [theme, setTheme] = useState(localStorage.getItem("theme"))
   const [close, setClose] = useState(false)
-
+  const [id_, setId] = useState("new")
   const [username, setUserName] = useState("")
   const [apiKey, setApiKey] = useState("")
   const [accessToken, setAccessToken] = useState<string | null>(localStorage.getItem("access"))
@@ -182,6 +183,7 @@ function App() {
       knowActive, setKnowActive,
       username, setUserName,
       apiKey, setApiKey,
+      id_, setId,
       }}>
         <div className="app">
         <Outlet/>
