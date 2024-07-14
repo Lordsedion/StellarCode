@@ -4,7 +4,7 @@ import { IoGitNetworkOutline } from "react-icons/io5";
 import { GiBrickWall } from "react-icons/gi";
 import Editor from '@monaco-editor/react';
 import { useParams } from 'react-router-dom';
-
+import ReactMarkdown from 'react-markdown';
 import avatar from '../../assets/images/bro.jpg'
 import ai from '../../assets/images/ai.jpg'
 import * as monaco from 'monaco-editor';
@@ -153,7 +153,7 @@ const Dialogue = ({ text }: dialogue) => {
   return (
     <div className="dialogue">
       <img src={pp !== "http://localhost:8000/None" ? pp: avatar} alt="AI" />
-      <p className="dialogue-content">{text}</p>
+      <p className="dialogue-content"><ReactMarkdown>{text}</ReactMarkdown></p>
     </div>
   )
 }
@@ -167,7 +167,7 @@ const AiDialogue = ({ text }: dialogue) => {
         text !== "" && (
           <>
             <div className="ai-dialogue-content">
-              <p><Typewriter text={text} speed={100} color={false} effect={false}/></p>
+              <p><ReactMarkdown>{text}</ReactMarkdown></p>
             </div>
           </>
         )

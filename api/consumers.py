@@ -42,11 +42,13 @@ class ChatConsumer(WebsocketConsumer):
         text_data_json = json.loads(text_data)
         message = text_data_json['message']
 
+        print(f"message received by server to client: {text_data_json}\n\n\n")
+
         bot_response = default_bot(message)
 
         async_to_sync(self.channel_layer.group_send) (
             self.room_group_name, 
-                {
+                {   
                     "type": "chat_message",
                     "message": {
                         "user": message,
@@ -122,9 +124,12 @@ class FrontConsumer(WebsocketConsumer):
         message = text_data_json['message']
 
         self.bot_response = simple_bot(message=message)
+        room = None
+        room_name = ""
 
         if Room.objects.filter(room_id=self.room_id).exists():
             room = Room.objects.filter(room_id=self.room_id)[0]
+            room_name = room.name
 
             # Create message logic here. 
             new_message = Message.objects.create(
@@ -140,6 +145,7 @@ class FrontConsumer(WebsocketConsumer):
                 room = room,
                 message = self.bot_response
             )
+
 
         async_to_sync(self.channel_layer.group_send) (
             self.room_group_id, 
@@ -160,6 +166,7 @@ class FrontConsumer(WebsocketConsumer):
                     "message": {
                         "user": message,
                         "bot": bot_res,
+                        "directory_name": room_name
                     }
                 }
         )
