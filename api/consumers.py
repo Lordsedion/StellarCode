@@ -2,8 +2,10 @@ import json
 from channels.generic.websocket import WebsocketConsumer
 from .models import *
 from asgiref.sync import async_to_sync
-from .bot import simple_bot
-from .bots.bot import default_bot
+from .bots.bot import programmer, dependency_bot, simple_bot
+# from .bots.dependency import dependency_bot
+from itertools import chain
+from operator import attrgetter
 
 class ChatConsumer(WebsocketConsumer):
     def connect(self):
@@ -44,7 +46,7 @@ class ChatConsumer(WebsocketConsumer):
 
         print(f"message received by server to client: {text_data_json}\n\n\n")
 
-        bot_response = default_bot(message)
+        bot_response = programmer(message)
 
         async_to_sync(self.channel_layer.group_send) (
             self.room_group_name, 
@@ -123,11 +125,10 @@ class FrontConsumer(WebsocketConsumer):
         text_data_json = json.loads(text_data)
         message = text_data_json['message']
 
-        self.bot_response = simple_bot(message=message)
         room = None
         room_name = ""
 
-        if Room.objects.filter(room_id=self.room_id).exists():
+        if Room.objects.filter(room_id=self.room_id).exists() and message != "":
             room = Room.objects.filter(room_id=self.room_id)[0]
             room_name = room.name
 
@@ -139,48 +140,7 @@ class FrontConsumer(WebsocketConsumer):
                 message = message
             )
 
-            bot_message = Message.objects.create(
-                sender = self.receiver,
-                receiver = self.user,
-                room = room,
-                message = self.bot_response
-            )
-
-
-        async_to_sync(self.channel_layer.group_send) (
-            self.room_group_id, 
-                {
-                    "type": "chat_message",
-                    "message": message,
-                    "username": self.user.username,
-                    # "timestamp": new_message.timestamp.isoformat()
-                }
-        )
-        
-        bot_res = default_bot(message)
-        async_to_sync(self.channel_layer.group_send) (
-            
-            self.room_group_name, 
-                {
-                    "type": "chat_message",
-                    "message": {
-                        "user": message,
-                        "bot": bot_res,
-                        "directory_name": room_name
-                    }
-                }
-        )
-
-    
-    def chat_message(self, event):
-        message = event["message"]
-
-        try:
-            room = Room.objects.filter(room_id=self.room_id)[0]
-            bot = Message.objects.filter(room=room).order_by("-created_at")[0]
-            messages = Message.objects.filter(room=room).order_by("-created_at")[1]
-
-            fr_response = simple_bot(self.bot_response)
+            messages = Message.objects.filter(room=room).order_by("-created_at")[0]
 
             self.send(text_data=json.dumps({
                     'message': messages.message,
@@ -190,6 +150,94 @@ class FrontConsumer(WebsocketConsumer):
                     "id": messages.id,
                     "room_id": messages.room_id
                 }))
+            
+            message_in_room = Message.objects.filter(room=room).order_by("created_at")
+            tips_in_room = ProductAgent.objects.filter(room=room).order_by("created_at")
+            code_in_room = Code.objects.filter(room=room).order_by("created_at")
+
+            items_in_room = list(chain(message_in_room, code_in_room, tips_in_room))
+            sorted_items = sorted(items_in_room, key=attrgetter("created_at"), reverse=True)
+            
+            history = []
+            for item in sorted_items:
+                if item.sender.username == self.user.username or item.sender.username == "DrymFyre":
+                    history.append({"role": "user", "parts": item.message})
+                elif item.sender.username == "code":
+                    history.append({"role": "model", "parts": item.message})
+
+            bot_res = programmer(message, chat_history=history)
+
+            code_message = Code.objects.create(
+                sender = self.receiver,
+                receiver = self.user,
+                room = room,
+                message=str(bot_res)
+            )
+
+            dependencies = dependency_bot(str(bot_res))
+            async_to_sync(self.channel_layer.group_send) (
+                self.room_group_name, 
+                    {
+                        "type": "chat_message",
+                        "message": {
+                            "user": message,
+                            "bot": bot_res,
+                            "directory_name": room_name,
+                            "dependency": dependencies
+                        }
+                    }
+            )
+            
+            self.bot_response = simple_bot(message=str(bot_res))
+            bot_message = Message.objects.create(
+                sender = self.receiver,
+                receiver = self.user,
+                room = room,
+                message = self.bot_response
+            )
+
+            bot = Message.objects.filter(room=room).order_by("-created_at")[0]
+            
+            self.send(text_data=json.dumps({
+                    'message': bot.message,
+                    "sender": bot.sender.username,
+                    "receiver": bot.receiver.username,
+                    "created_at": bot.created_at.isoformat(),
+                    "id": bot.id,
+                    "room_id": bot.room_id
+                }))
+
+
+        # async_to_sync(self.channel_layer.group_send) (
+        #     self.room_group_id, 
+        #         {
+        #             "type": "chat_message",
+        #             "message": message,
+        #             "username": self.user.username,
+        #             # "timestamp": new_message.timestamp.isoformat()
+        #         }
+        # )
+
+    
+    def chat_message(self, event):
+        message = event["message"]
+
+        try:
+            room = Room.objects.filter(room_id=self.room_id)[0]
+            # room = Room.objects.filter(room_id=self.room_id)[0]
+            bot = Message.objects.filter(room=room).order_by("-created_at")[0]
+            # messages = Message.objects.filter(room=room).order_by("-created_at")[1]
+
+            # fr_response = simple_bot(self.bot_response)
+
+            # self.send(text_data=json.dumps({
+            #         'message': messages.message,
+            #         "sender": messages.sender.username,
+            #         "receiver": messages.receiver.username,
+            #         "created_at": messages.created_at.isoformat(),
+            #         "id": messages.id,
+            #         "room_id": messages.room_id
+            #     }))
             
             self.send(text_data=json.dumps({
                     'message': bot.message,
@@ -210,15 +258,33 @@ class FrontConsumer(WebsocketConsumer):
     def send_previous_messages(self):
         try:
             room = Room.objects.filter(room_id=self.room_id)[0]
-            previous_messages = Message.objects.filter(room=room).order_by("created_at")
+            messages = Message.objects.filter(room=room).order_by("created_at")
+            code = Code.objects.filter(room=room).order_by("created_at")
+            previous_messages = list(chain(messages, code))
+
+            previous_messages = sorted(previous_messages, key=attrgetter("created_at"))
             for message in previous_messages:
-                self.send(text_data=json.dumps({
+                if message._meta.model_name == "message":
+                    self.send(text_data=json.dumps({
+                        'message': message.message,
+                        "sender": message.sender.username,
+                        "receiver": message.receiver.username,
+                        "created_at": message.created_at.isoformat(),
+                        "id": message.id,
+                        "language": "",
+                        "room_id": message.room_id,
+                        "name": ""
+                    }))
+                else:
+                    self.send(text_data=json.dumps({
                     'message': message.message,
                     "sender": message.sender.username,
                     "receiver": message.receiver.username,
                     "created_at": message.created_at.isoformat(),
+                    "language": message.language,
                     "id": message.id,
-                    "room_id": message.room_id
+                    "room_id": message.room_id,
+                    "name": message.name
                 }))
         except:
             print("No item found in this room")

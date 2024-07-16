@@ -7,4 +7,5 @@ admin.site.register(APIKey)
 admin.site.register(Message)
 admin.site.register(Code)
 admin.site.register(Room)
+admin.site.register(ProductAgent)
 

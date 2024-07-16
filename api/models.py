@@ -98,12 +98,26 @@ class Message(models.Model):
 
     def __str__(self) -> str:
         return f"Message by {self.sender.username}"   
+
+
+class ProductAgent(models.Model):
+    sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name="product_manager")
+    room = models.ForeignKey(Room, on_delete=models.CASCADE)
+    message = models.CharField(max_length=50000)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+
+    def __str__(self) -> str:
+        return f"Message by {self.room}"   
     
 
 class Code(models.Model):
     sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name="code_server")
     receiver = models.ForeignKey(User, on_delete=models.CASCADE, related_name="code_client")
+    name = models.CharField(max_length=128, default="example.py")
+    room = models.ForeignKey(Room, on_delete=models.CASCADE)
     message = models.CharField(max_length=50000)
+    language = models.CharField(max_length=128, default="python")
     created_at = models.DateTimeField(auto_now_add=True)
 
 
