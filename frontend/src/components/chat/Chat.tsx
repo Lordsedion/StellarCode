@@ -17,9 +17,9 @@ interface codeProps {
   name?: string
 }
 
-const MonacoEditor = ({code, language, mode, name=""}: codeProps) => {
+const MonacoEditor = ({ code, language, mode, name = "" }: codeProps) => {
   const [copied, setCopied] = useState(false)
-  const rand = Math.floor(Math.random()*1000000000)
+  const rand = Math.floor(Math.random() * 1000000000)
 
   function copyText(str: string) {
     var copyText_: any = document.getElementById(str);
@@ -28,53 +28,53 @@ const MonacoEditor = ({code, language, mode, name=""}: codeProps) => {
     copyText_!.setSelectionRange(0, 99999); // For mobile devices
 
     if (navigator.clipboard) {
-        navigator.clipboard.writeText(copyText_.value).then(() => {
-            setCopied(true)
-        }).catch(err => {
-            console.error('Failed to copy: ', err);
-        });
+      navigator.clipboard.writeText(copyText_.value).then(() => {
+        setCopied(true)
+      }).catch(err => {
+        console.error('Failed to copy: ', err);
+      });
     }
     else {
-        document.execCommand("copy");
-        setCopied(true)
+      document.execCommand("copy");
+      setCopied(true)
 
     }
-}
+  }
 
   return (
     <div className="code-group">
-       <input id={`cl-${rand}`} className='hidden' value={code}/>
+      <input id={`cl-${rand}`} className='hidden' value={code} />
       <div className="code-header">
         {/* <p>{language}</p> */}
-       
+
         <p>{name}</p>
-        <span onClick={()=>{copyText(`cl-${rand}`)}}><FaCopy/> {copied ? "copied": "Copy"}</span>
+        <span onClick={() => { copyText(`cl-${rand}`) }}><FaCopy /> {copied ? "copied" : "Copy"}</span>
       </div>
       <Editor
-      height="100%"
-      defaultLanguage={language}
-      defaultValue={code}
-      theme={mode}
-      options={{
-        readOnly: true,
-        // lineNumbers: 'off',
-        minimap: { enabled: false },
-        scrollBeyondLastLine: false,
-        renderLineHighlight: 'none',
-        folding: false,
-        hideCursorInOverviewRuler: true,
-        overviewRulerBorder: false,
-        selectionHighlight: false,
-        cursorBlinking: 'solid',
-        contextmenu: false,
-        links: false,
-        renderControlCharacters: false,
-        renderWhitespace: 'none',
-        wordWrap: 'on',
-      }}
-    />
+        height="100%"
+        defaultLanguage={language}
+        defaultValue={code}
+        theme={mode}
+        options={{
+          readOnly: true,
+          // lineNumbers: 'off',
+          minimap: { enabled: false },
+          scrollBeyondLastLine: false,
+          renderLineHighlight: 'none',
+          folding: false,
+          hideCursorInOverviewRuler: true,
+          overviewRulerBorder: false,
+          selectionHighlight: false,
+          cursorBlinking: 'solid',
+          contextmenu: false,
+          links: false,
+          renderControlCharacters: false,
+          renderWhitespace: 'none',
+          wordWrap: 'on',
+        }}
+      />
     </div>
-    
+
   );
 };
 
@@ -152,7 +152,7 @@ const Dialogue = ({ text }: dialogue) => {
   const pp = global.profilePic!
   return (
     <div className="dialogue">
-      <img src={pp !== "http://localhost:8000/None" ? pp: avatar} alt="AI" />
+      <img src={pp !== "http://localhost:8000/None" ? pp : avatar} alt="AI" />
       <p className="dialogue-content"><ReactMarkdown>{text}</ReactMarkdown></p>
     </div>
   )
@@ -221,7 +221,7 @@ const Chat = () => {
 
   // const [id_, setId] = useState(id)
   const [chat, setChat] = useState([])
-  const {id_, setId, accessToken, setKnowActive, apiKey} = useContext(GlobalContext)
+  const { id_, setId, accessToken, setKnowActive, apiKey } = useContext(GlobalContext)
   // const id_ = globalContext.id_
   // const setId = globalContext.setId
   // const accessToken = globalContext.accessToken
@@ -229,7 +229,7 @@ const Chat = () => {
   if (id !== "new") {
     setId(id)
   }
-  
+
   setKnowActive(`${id}/`)
   const code = `function copyText(str: string) {
     var copyText: any = document.getElementById(str);
@@ -250,7 +250,7 @@ const Chat = () => {
 
     }
 }`
-  const data:Array<dataProps> = [
+  const data: Array<dataProps> = [
     {
       user: "Using the Newton-Raphson method, write a code that approximates the solution of quadratic quations in python",
       ai: "Using the Newton-Raphson's formula, the approximation of quadratic equations using Python is..."
@@ -262,65 +262,65 @@ const Chat = () => {
     }
   ]
 
-  
-  async function createRoom () {
+
+  async function createRoom() {
     const url = "http://localhost:8000/api/create_room"
     const options = {
-        method: 'POST',
-        headers: {
+      method: 'POST',
+      headers: {
         'Content-Type': 'application/json',
         'X-CSRFToken': getCookie('csrftoken'),
         "Authorization": `Bearer ${accessToken}`
-        },
-        body: JSON.stringify({
-          "name": "New_room"
-        })
+      },
+      body: JSON.stringify({
+        "name": "New_room"
+      })
     };
     fetch(url, options)
-    .then(response=> {
+      .then(response => {
         if (!response.ok) {
-            throw new Error("Response is not okay " + response.statusText)
+          throw new Error("Response is not okay " + response.statusText)
         }
         else {
-            return response.json()
+          return response.json()
         }
-    })
-    .then(data => {
+      })
+      .then(data => {
         console.log(data)
-        setId((prev:any)=>data["room_id"])
+        setId((prev: any) => data["room_id"])
       })
       .catch(error => {
         console.error('Error:', error); // Handle any errors that occur
       });
-}
-  async function postData () {
+  }
+  async function postData() {
     const url = "http://localhost:8000/api/view_message"
     const options = {
-        method: 'POST',
-        headers: {
+      method: 'POST',
+      headers: {
         'Content-Type': 'application/json',
         'X-CSRFToken': getCookie('csrftoken'),
         "Authorization": `Bearer ${accessToken}`
-        },
-        body: JSON.stringify({"room_id": id})
+      },
+      body: JSON.stringify({ "room_id": id })
     };
     fetch(url, options)
-    .then(response=> {
+      .then(response => {
         if (!response.ok) {
-            throw new Error("Response is not okay " + response.statusText)
+          throw new Error("Response is not okay " + response.statusText)
         }
         else {
-            return response.json()
+          return response.json()
         }
-    })
-    .then(data => {
+      })
+      .then(data => {
         console.log(data)
         setChat(data["message"])
       })
       .catch(error => {
         console.error('Error:', error); // Handle any errors that occur
       });
-}
+  }
   const [userChat, setUserChat] = useState("")
   const ref = useRef<HTMLTextAreaElement>(null);
 
@@ -334,33 +334,33 @@ const Chat = () => {
     selectOnLineNumbers: true
   };
 
-const socketRef = useRef(null)
-const [messages, setMessages] = useState([])
+  const socketRef = useRef(null)
+  const [messages, setMessages] = useState([])
 
-useEffect(() => {
-  const targetElement = document.querySelector("#sectionChat");
+  useEffect(() => {
+    const targetElement = document.querySelector("#sectionChat");
 
-  if (targetElement !== null) {
+    if (targetElement !== null) {
       targetElement.scrollTo(0, targetElement.scrollHeight)
-  }
-
-  // Add keypress event listener to the input field
-  const input = ref.current;
-  const handleKeyPress = (event:any) => {
-    if (event.key === 'Enter' && !event.shiftKey && userChat.trim() !=="") {
-      sendMessage();
     }
-  };
 
-  input.addEventListener('keypress', handleKeyPress);
+    // Add keypress event listener to the input field
+    const input = ref.current;
+    const handleKeyPress = (event: any) => {
+      if (event.key === 'Enter' && !event.shiftKey && userChat.trim() !== "") {
+        sendMessage();
+      }
+    };
 
-  // Clean up the event listener on component unmount
-  return () => {
-    input.removeEventListener('keypress', handleKeyPress);
-  };
-}, [userChat, messages, id_]);
+    input.addEventListener('keypress', handleKeyPress);
 
-  useEffect(()=> {
+    // Clean up the event listener on component unmount
+    return () => {
+      input.removeEventListener('keypress', handleKeyPress);
+    };
+  }, [userChat, messages, id_]);
+
+  useEffect(() => {
     console.log(`ws://localhost:8001/ws/chat/${id_}/?api_key=${apiKey}`, id, id_)
     if (id_ !== "new") {
       socketRef.current = new WebSocket(`ws://localhost:8001/ws/chat/${id_}/?api_key=${apiKey}`);
@@ -369,25 +369,25 @@ useEffect(() => {
       socketRef.current.onopen = () => {
         console.log('Connected to the WebSocket server');
       };
-  
+
       // 3. Handle incoming messages
-      socketRef.current.onmessage = (event:any) => {
+      socketRef.current.onmessage = (event: any) => {
         setMessages((prevMessages) => [...prevMessages, JSON.parse(event.data)]);
         console.log("Messages", messages, event.data)
       };
-  
+
       // 4. Handle connection errors
-      socketRef.current.onerror = (error:any) => {
+      socketRef.current.onerror = (error: any) => {
         console.error('WebSocket error:', error);
       };
-  
+
       // 5. Handle connection closure
       socketRef.current.onclose = () => {
         console.log('WebSocket connection closed');
       };
 
       // sendMessage2()
-  
+
       return () => {
         socketRef.current.close()
       };
@@ -402,21 +402,21 @@ useEffect(() => {
       if (apiKey !== "" && userChat.trim() !== "") {
         const newRoomId = await createRoom();
         socketRef.current = new WebSocket(`ws://localhost:8001/ws/chat/${newRoomId}/?api_key=${apiKey}`);
-  
+
         socketRef.current.onopen = () => {
           console.log('Connected to the WebSocket server in new room');
           sendMessageToSocket();
         };
-  
+
         socketRef.current.onmessage = (event: any) => {
           setMessages((prevMessages) => [...prevMessages, JSON.parse(event.data)]);
           console.log("Messages", messages, event.data);
         };
-  
+
         socketRef.current.onerror = (error: any) => {
           console.error('WebSocket error:', error);
         };
-  
+
         socketRef.current.onclose = () => {
           console.log('WebSocket connection closed');
         };
@@ -425,7 +425,7 @@ useEffect(() => {
       sendMessageToSocket();
     }
   }
-  
+
   const sendMessageToSocket = () => {
     if (socketRef.current.readyState === WebSocket.OPEN) {
       const messageData = {
@@ -462,7 +462,7 @@ useEffect(() => {
   //       console.log("id_____", id_)
   //     }
   //   }
-    
+
   // }
   // const sendMessage2 = () => {
   //   console.log("Entry  pig", userChat.trim()!=="", id_!=="new")
@@ -480,7 +480,7 @@ useEffect(() => {
   //   else {
   //     console.log("Filthy pig")
   //   }
-    
+
   // }
 
 
@@ -525,24 +525,33 @@ useEffect(() => {
             </div>
           </form>
         </div>
-      </div>      
+      </div>
       {
         messages.length > 0 && (
           <div className={`sections-chat ${messages.length > 0 ? "" : "hidden"}`} id='sectionChat' key={messages.length}>
-        {
-          messages.map(({ created_at, id, message, receiver, sender }) => {
-            return (
-              <>
-              {
-                receiver === "Stellarcode" ? <Dialogue text={message} key={id} /> : 
-                
-                <AiDialogue text={message} key={id} />
-              }
-              </>
-            )
-          })
-        }
-        {/* <div className="code-editor">
+            {
+              messages.map(({ created_at, id, message, receiver, sender, language, name }) => {
+                return (
+                  <>
+                    {
+                      receiver === "Stellarcode" ? (<Dialogue text={message} key={id} />) :
+                        sender === "DrymFyre" ? (
+                          <div className="code-editor">
+                            <MonacoEditor
+                              code={message}
+                              language={language}
+                              mode='vs-dark'
+                              name={name}
+                            />
+                          </div>
+                        ) :
+                          (<AiDialogue text={message} key={id} />)
+                    }
+                  </>
+                )
+              })
+            }
+            {/* <div className="code-editor">
             <MonacoEditor
             code={code}
             language="javascript"
@@ -550,34 +559,34 @@ useEffect(() => {
             name='script.js'
           />
         </div> */}
-        
-        <div className="bosslion">
-          <div className="chat-sect-in">
-            <form>
-              <div className="fr-in-con">
-                <textarea
-                  onInput={handleInput}
-                  spellCheck={false}
-                  ref={ref}
-                  onChange={(e) => {
-                    setUserChat(e.target.value)
-                  }}
-                  placeholder='Enter a prompt here...'
-                  value={userChat}
-                  className='dynamo'
-                >
 
-                </textarea>
-                <span className={`${userChat === "" ? "color-grey" : ""}`} onClick={()=> {sendMessage()}}><FaArrowAltCircleUp /></span>
+            <div className="bosslion">
+              <div className="chat-sect-in">
+                <form>
+                  <div className="fr-in-con">
+                    <textarea
+                      onInput={handleInput}
+                      spellCheck={false}
+                      ref={ref}
+                      onChange={(e) => {
+                        setUserChat(e.target.value)
+                      }}
+                      placeholder='Enter a prompt here...'
+                      value={userChat}
+                      className='dynamo'
+                    >
+
+                    </textarea>
+                    <span className={`${userChat === "" ? "color-grey" : ""}`} onClick={() => { sendMessage() }}><FaArrowAltCircleUp /></span>
+                  </div>
+                </form>
               </div>
-            </form>
-          </div>
-        </div>
+            </div>
 
-      </div>
+          </div>
         )
       }
-      
+
     </div>
   )
 }
