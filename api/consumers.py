@@ -1,9 +1,38 @@
+"""
+
+||| REMEMBER REMEMBER REMEMBER |||
+
+    I wanna love you forever
+    Baby oh, do you remember?
+    Remember, my baby, remember
+
+    I just want to spend all my cheddar on you
+    Ọmọ to dun jọ-jọ, jọ
+    Fun mi l'eyo kan, kin toh
+
+    Ragabomi jọ, n to, to
+    I know say you want some more
+    Mr. Money with vibе, you know, I no dey dull
+    Don't dull, dull
+    Give it to me jọ-jọ, jọ
+
+    Je a jo ma shakiti bobo
+    Skepele, Barbie jọ
+    My chubby Babylon, I dey knock on your door, door, door
+    Give it to me jọ-jọ, jọ
+
+    Je a jo ma shakiti bobo
+    Skepele, Barbie jọ
+    My chubby Babylon, I dey knock on your door
+
+"""
+
+
 import json
 from channels.generic.websocket import WebsocketConsumer
 from .models import *
 from asgiref.sync import async_to_sync
-from .bots.bot import programmer, dependency_bot, simple_bot
-# from .bots.dependency import dependency_bot
+from .bots.bot import programmer, dependency_bot, simple_bot, executioner_bot
 from itertools import chain
 from operator import attrgetter
 
@@ -102,6 +131,9 @@ class FrontConsumer(WebsocketConsumer):
             self.room_id = self.scope['url_route']['kwargs']['room_id']
             self.room_group_id = f'chat_{self.room_id}'
 
+            if self.room_id == "undefined":
+                self.close()
+
             print(f"Room name: {self.room_id}\nGroup Name: {self.room_group_id}")
 
             async_to_sync(self.channel_layer.group_add) (
@@ -167,14 +199,33 @@ class FrontConsumer(WebsocketConsumer):
 
             bot_res = programmer(message, chat_history=history)
 
-            code_message = Code.objects.create(
-                sender = self.receiver,
-                receiver = self.user,
-                room = room,
-                message=str(bot_res)
-            )
+            bot_res = bot_res
+            code_sender = User.objects.filter(username="DrymFyre")[0]
+            for block in bot_res:
+
+                code = Code.objects.create(
+                    sender = code_sender,
+                    receiver = self.user,
+                    room = room,
+                    message=bot_res[block],
+                    name = str(block),
+                )
+
+                self.send(text_data=json.dumps({
+                    'message': code.message,
+                    "sender": code.sender.username,
+                    "receiver": code.receiver.username,
+                    "created_at": code.created_at.isoformat(),
+                    "id": code.id,
+                    "room_id": code.room_id,
+                    "name": code.name,
+                    "language": code.language
+                }))
+
 
             dependencies = dependency_bot(str(bot_res))
+            shell_commands = executioner_bot(str(bot_res))
+
             async_to_sync(self.channel_layer.group_send) (
                 self.room_group_name, 
                     {
@@ -183,7 +234,8 @@ class FrontConsumer(WebsocketConsumer):
                             "user": message,
                             "bot": bot_res,
                             "directory_name": room_name,
-                            "dependency": dependencies
+                            "dependency": dependencies,
+                            "shell_commands": shell_commands
                         }
                     }
             )
