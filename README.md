@@ -8,7 +8,7 @@ There will be no need for copying and pasting code because the agent will handle
 all these tasks allowing you to focus on what matters. Regardless of skill level, anyone can 
 develop software using this Agent
 
-### Project Structure:
+## Project Structure:
 The repository is structured as follows:
 
 - *__api/:__* This folder contains the backend code responsible for the functionality of this product. 
@@ -24,7 +24,7 @@ It handles the request, WebSockets, and agent tasks delegation, and actions.
 
 - *__manage.py/:__* This file provided by the default Django setup is used to run, configure and manage the server.
 
-### AIM
+## AIM
 
 This project aims to bring AI agents to the general public and democratize the ability to create software applications 
 from just a specialized skill where only a select few can create programs to something that is generally accessible.
