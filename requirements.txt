@@ -200,9 +200,7 @@ rfc3986-validator==0.1.1
 rpds-py==0.18.0
 rpm==4.19.1.1
 rsa==4.9
-selinux @ file:///builddir/build/BUILD/libselinux-3.5/src
 Send2Trash==1.8.3
-sepolicy @ file:///builddir/build/BUILD/selinux-3.5/python/sepolicy
 service-identity==24.1.0
 sesame==0.3.3
 setools==4.4.3
