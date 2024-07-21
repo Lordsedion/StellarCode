@@ -29,15 +29,41 @@
 
 
 import json
-from channels.generic.websocket import WebsocketConsumer 
+from channels.generic.websocket import WebsocketConsumer, AsyncWebsocketConsumer # type: ignore
+from asgiref.sync import sync_to_async # type: ignore
 from .models import *
 from asgiref.sync import async_to_sync # type: ignore
 from .bots.bot import programmer, dependency_bot, simple_bot, executioner_bot, debugger
 from itertools import chain
 from operator import attrgetter
 
-class ChatConsumer(WebsocketConsumer):
-    def connect(self):
+@sync_to_async
+def verify(key):
+        return APIKey.objects.filter(public_key=key).exists()
+    
+@sync_to_async
+def get_key(key):
+        return APIKey.objects.filter(public_key=key).values()[0]["secret_key"]
+
+@sync_to_async
+def get_user(key):
+    return APIKey.objects.filter(public_key=key)[0].user
+
+@sync_to_async
+def get_room(user, rm):
+    return Room.objects.filter(user=user, name=rm["room"])[0]
+
+@sync_to_async
+def get_code(room):
+    return Code.objects.filter(room=room).order_by("created_at")
+
+
+def get_code_pure(room):
+    return Code.objects.filter(room=room).order_by("created_at")
+
+
+class ChatConsumer(AsyncWebsocketConsumer):
+    async def connect(self):
         print(f"Hello boss {self.scope['query_string'].decode().split('=')[1]}")
         
         self.key = self.scope['query_string'].decode().split('=')[1]     
@@ -45,31 +71,31 @@ class ChatConsumer(WebsocketConsumer):
         self.room_name = "None"
         self.room_group_name = "None"
         
-        if self.verify(self.key):
-            self.accept()
-            self.room_name = APIKey.objects.filter(public_key=self.key).values()[0]["secret_key"]
+        if await verify(self.key):
+            await self.accept()
+            self.room_name = await get_key(self.key)
             self.room_group_name = f'chat_{self.room_name}'
 
-            print(f"Room name: {self.room_name}\nGroup Name: {self.room_group_name}")
+            print(f"Room name: {self.room_name}\nGroup Name: {self.room_group_name}\nKey: {await verify(self.key)}")
 
-            async_to_sync(self.channel_layer.group_add) (
+            await self.channel_layer.group_add(
                 self.room_group_name,
                 self.channel_name
                 )
             print(f"User connected to room: {self.room_name} with key {self.key}")
             
         else:
-            self.close()
+            await self.close()
 
 
-    def disconnect(self, close_code):
-        async_to_sync(self.channel_layer.group_discard) (
+    async def disconnect(self, close_code):
+        await self.channel_layer.group_discard(
             self.room_group_name,
             self.channel_name
         )
 
 
-    def receive(self, text_data):
+    async def receive(self, text_data):
         text_data_json = json.loads(text_data)
         room = "None"
         message = text_data_json['message']
@@ -89,12 +115,12 @@ class ChatConsumer(WebsocketConsumer):
         # )
 
         history = []
-        self.user = APIKey.objects.filter(public_key=self.key)[0].user
+        self.user = await get_user(self.key)
         print(f"Key: {self.key}\nRoom Name: {self.room_name}\nUser: {self.user}")
 
-        room = Room.objects.filter(user=self.user, name=text_data_json["room"])[0]
+        room = await get_room(self.user, rm=text_data_json["room"])
 
-        code_in_room = Code.objects.filter(room=room).order_by("created_at")
+        code_in_room = await get_code(room)
 
         items_in_room = list(chain(code_in_room))
         sorted_items = sorted(items_in_room, key=attrgetter("created_at"), reverse=True)
@@ -111,7 +137,7 @@ class ChatConsumer(WebsocketConsumer):
 
         bot_res = bot_res
 
-        async_to_sync(self.channel_layer.group_send) (
+        await (self.channel_layer.group_send) (
             self.room_group_name, 
                 {   
                     "type": "chat_message",
@@ -163,28 +189,106 @@ class ChatConsumer(WebsocketConsumer):
 
 
     
-    def chat_message(self, event):
+    async def chat_message(self, event):
         message = event["message"]
 
-        self.send(text_data=json.dumps({
+        await self.send(text_data=json.dumps({
                 "message": message
             }))
 
-    
-    def verify(self, key):
-        return APIKey.objects.filter(public_key=key).exists()
 
 
-class FrontConsumer(WebsocketConsumer):
-    def connect(self):
+@sync_to_async
+def get_user_front(key):
+    return APIKey.objects.filter(public_key=key)[0].user
+    # return User.objects.filter(id=APIKey.objects.filter(public_key=key).values()[0]["user_id"])[0]
+
+
+@sync_to_async
+def get_base_user():
+    return User.objects.filter(username="Stellarcode")[0]
+
+@sync_to_async 
+def get_secret_front(key):
+    return APIKey.objects.filter(public_key=key).values()[0]["secret_key"]
+
+@sync_to_async
+def verify_room(room_id):
+    return Room.objects.filter(room_id=room_id).exists()
+
+@sync_to_async
+def get_room_front(room_id):
+    return Room.objects.filter(room_id=room_id)[0]
+
+
+def get_room_front_pure(room_id):
+    return Room.objects.filter(room_id=room_id)[0]
+
+
+@sync_to_async
+def create_message(user, receiver, room, message):
+    return Message.objects.create(
+                sender = user, 
+                receiver = receiver, # Edit later to support the actual sender which should be bot
+                room = room,
+                message = message
+            )
+
+
+@sync_to_async
+def filter_messages_begin(room):
+    return Message.objects.filter(room=room).order_by("-created_at")[0]
+
+
+@sync_to_async
+def filter_messages_end(room):
+    return Message.objects.filter(room=room).order_by("created_at")[0]
+
+
+def filter_messages_end_pure(room):
+    return Message.objects.filter(room=room).order_by("created_at")
+
+@sync_to_async
+def get_tips(room):
+    return ProductAgent.objects.filter(room=room).order_by("created_at")
+
+@sync_to_async
+def get_base_user_2():
+    return User.objects.filter(username="DrymFyre")[0]
+
+@sync_to_async
+def create_code(sender, receiver, room, message, name):
+    return Code.objects.create(
+                    sender = sender,
+                    receiver = receiver,
+                    room = room,
+                    message= message,
+                    name = name,
+                )
+
+@sync_to_async
+def create_message_2(user, receiver, room, bot_response):
+    return Message.objects.create(
+                sender = receiver,
+                receiver = user,
+                room = room,
+                message = bot_response
+            )
+
+class FrontConsumer(AsyncWebsocketConsumer):
+    async def connect(self):
         
         self.key = self.scope['query_string'].decode().split('=')[1]
         self.user = self.scope['user']
 
-        self.user = User.objects.filter(id=APIKey.objects.filter(public_key=self.key).values()[0]["user_id"])[0]
-        self.receiver = User.objects.filter(username="Stellarcode")[0]
+        try:
+            self.user = await get_user_front(self.key)
+        except Exception as e:
+            print(f"Boring: {e} {self.user}")
+            await self.send_previous_messages()
+        self.receiver = await get_base_user()
 
-        print(f"User is {self.user}")
+        print(f"User is {self.user}, {self.key} {await verify(self.key)}")
 
         self.room_name = "None"
         self.room_group_name = "None"
@@ -195,22 +299,21 @@ class FrontConsumer(WebsocketConsumer):
         self.room_group_id = "None"
         
         # if user.is_authenticated:
-        if self.verify(self.key):
-            self.accept()
-            
+        if await verify(self.key):
+            await self.accept()
 
-            self.room_name = APIKey.objects.filter(public_key=self.key).values()[0]["secret_key"]
+            self.room_name = await get_secret_front(self.key)
             self.room_group_name = f'chat_{self.room_name}'
 
             self.room_id = self.scope['url_route']['kwargs']['room_id']
             self.room_group_id = f'chat_{self.room_id}'
 
             if self.room_id == "undefined":
-                self.close()
+                await self.close()
 
             print(f"Room name: {self.room_id}\nGroup Name: {self.room_group_id}")
 
-            async_to_sync(self.channel_layer.group_add) (
+            await (self.channel_layer.group_add) (
                 self.room_group_id,
                 self.channel_name
                 )
@@ -219,39 +322,35 @@ class FrontConsumer(WebsocketConsumer):
 
             
         else:
-            self.close()
+            await self.close()
 
 
-    def disconnect(self, close_code):
-        async_to_sync(self.channel_layer.group_discard) (
+    async def disconnect(self, close_code):
+        await (self.channel_layer.group_discard) (
             self.room_group_id,
             self.channel_name
         )
 
 
-    def receive(self, text_data):
+    async def receive(self, text_data):
         text_data_json = json.loads(text_data)
         message = text_data_json['message']
 
         room = None
         room_name = ""
 
-        if Room.objects.filter(room_id=self.room_id).exists() and message != "":
-            room = Room.objects.filter(room_id=self.room_id)[0]
+        if await verify_room(self.room_id) and message != "":
+            room = await get_room_front(self.room_id)
             room_name = room.name
 
             # Create message logic here. 
-            new_message = Message.objects.create(
-                sender = self.user, 
-                receiver = self.receiver, # Edit later to support the actual sender which should be bot
-                room = room,
-                message = message
-            )
+            
+            new_message = await create_message(user=self.user, receiver=self.receiver, room=room,message=message)
 
-            messages = Message.objects.filter(room=room).order_by("-created_at")[0]
+            messages = await filter_messages_begin(room)
             
             # Sends message received from the user back to the frontend ui to be displayed.
-            self.send(text_data=json.dumps({
+            await self.send(text_data=json.dumps({
                     'message': messages.message,
                     "sender": messages.sender.username,
                     "receiver": messages.receiver.username,
@@ -260,9 +359,9 @@ class FrontConsumer(WebsocketConsumer):
                     "room_id": messages.room_id
                 }))
             
-            message_in_room = Message.objects.filter(room=room).order_by("created_at")
-            tips_in_room = ProductAgent.objects.filter(room=room).order_by("created_at")
-            code_in_room = Code.objects.filter(room=room).order_by("created_at")
+            message_in_room = await filter_messages_end(room)
+            tips_in_room = await get_tips(room)
+            code_in_room = await get_code(room=room)
 
             items_in_room = list(chain(message_in_room, code_in_room, tips_in_room))
             sorted_items = sorted(items_in_room, key=attrgetter("created_at"), reverse=True)
@@ -277,18 +376,18 @@ class FrontConsumer(WebsocketConsumer):
             bot_res = programmer(message, chat_history=history)
 
             bot_res = bot_res
-            code_sender = User.objects.filter(username="DrymFyre")[0]
+            code_sender = await get_base_user_2()
             for block in bot_res:
 
-                code = Code.objects.create(
-                    sender = code_sender,
-                    receiver = self.user,
-                    room = room,
+                code = await create_code(
+                    sender=code_sender,
+                    receiver=self.user,
+                    room=room,
                     message=bot_res[block],
                     name = str(block),
-                )
+                    )
 
-                self.send(text_data=json.dumps({
+                await self.send(text_data=json.dumps({
                     'message': code.message,
                     "sender": code.sender.username,
                     "receiver": code.receiver.username,
@@ -303,7 +402,7 @@ class FrontConsumer(WebsocketConsumer):
             dependencies = dependency_bot(str(bot_res))
             shell_commands = executioner_bot(directory=room.name, prompt=str(bot_res))
 
-            async_to_sync(self.channel_layer.group_send) (
+            await (self.channel_layer.group_send) (
                 self.room_group_name, 
                     {
                         "type": "chat_message",
@@ -318,16 +417,16 @@ class FrontConsumer(WebsocketConsumer):
             )
             
             self.bot_response = simple_bot(message=str(bot_res))
-            bot_message = Message.objects.create(
+            bot_message = await create_message_2(
                 sender = self.receiver,
                 receiver = self.user,
                 room = room,
                 message = self.bot_response
-            )
+                )
 
-            bot = Message.objects.filter(room=room).order_by("-created_at")[0]
+            bot = await filter_messages_begin(room=room)
             
-            self.send(text_data=json.dumps({
+            await self.send(text_data=json.dumps({
                     'message': bot.message,
                     "sender": bot.sender.username,
                     "receiver": bot.receiver.username,
@@ -348,13 +447,13 @@ class FrontConsumer(WebsocketConsumer):
         # )
 
     
-    def chat_message(self, event):
+    async def chat_message(self, event):
         message = event["message"]
 
         try:
-            room = Room.objects.filter(room_id=self.room_id)[0]
+            room = await get_room_front(room_id=self.room_id)
             # room = Room.objects.filter(room_id=self.room_id)[0]
-            bot = Message.objects.filter(room=room).order_by("-created_at")[0]
+            bot = await filter_messages_begin(room=room)
             # messages = Message.objects.filter(room=room).order_by("-created_at")[1]
 
             # fr_response = simple_bot(self.bot_response)
@@ -368,7 +467,7 @@ class FrontConsumer(WebsocketConsumer):
             #         "room_id": messages.room_id
             #     }))
             
-            self.send(text_data=json.dumps({
+            await self.send(text_data=json.dumps({
                     'message': bot.message,
                     "sender": bot.sender.username,
                     "receiver": bot.receiver.username,
@@ -380,21 +479,21 @@ class FrontConsumer(WebsocketConsumer):
             print("Nothing found here")
 
     
-    def verify(self, key):
-        return APIKey.objects.filter(public_key=key).exists()
+    # async def verify(self, key):
+    #     return APIKey.objects.filter(public_key=key).exists()
     
 
-    def send_previous_messages(self):
+    async def send_previous_messages(self,):
         try:
-            room = Room.objects.filter(room_id=self.room_id)[0]
-            messages = Message.objects.filter(room=room).order_by("created_at")
-            code = Code.objects.filter(room=room).order_by("created_at")
+            room = get_room_front_pure(room_id=self.room_id)
+            messages = filter_messages_end_pure(room=room)
+            code = get_code_pure(room=room)
             previous_messages = list(chain(messages, code))
 
             previous_messages = sorted(previous_messages, key=attrgetter("created_at"))
             for message in previous_messages:
                 if message._meta.model_name == "message":
-                    self.send(text_data=json.dumps({
+                    await self.send(text_data=json.dumps({
                         'message': message.message,
                         "sender": message.sender.username,
                         "receiver": message.receiver.username,
@@ -405,7 +504,7 @@ class FrontConsumer(WebsocketConsumer):
                         "name": ""
                     }))
                 else:
-                    self.send(text_data=json.dumps({
+                    await self.send(text_data=json.dumps({
                     'message': message.message,
                     "sender": message.sender.username,
                     "receiver": message.receiver.username,
@@ -415,7 +514,7 @@ class FrontConsumer(WebsocketConsumer):
                     "room_id": message.room_id,
                     "name": message.name
                 }))
-        except:
-            print("No item found in this room")
+        except Exception as e:
+            print(f"No item found in this room {e}")
     
 

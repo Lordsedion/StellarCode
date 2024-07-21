@@ -13,11 +13,17 @@ def programmer(prompt="", chat_history=[]):
                 model_name='gemini-1.5-pro',
                 generation_config={"response_mime_type": "application/json"},
                 system_instruction="""If the prompt you are given is related to a coding problem, as an experienced 
-                software engineer write the code for the software that achieve the user prompt. Return all this in json format using the filenames as the key. Do not give any extra information apart from the code you are asked to give.
-                If multiple files are needed do not hesitate to do so. Make sure the code works, it is sensible and feasible!!!. Unless asked not to, use libraries that will
-                make the workflow easier. If you are writing in python, ensure to keep syntax and indentation standards!
+                software engineer write the code for the software that achieve the user prompt.
+                Return all this in json format using the filenames as the key.
+                Do not give any extra information apart from the code you are asked to give.
+                
+                If multiple files are needed do not hesitate to do so. 
+                Make sure the code works, it is sensible and feasible!!!. Unless asked not to, use libraries that will
+                make the workflow easier. 
+                
+                If you are writing in python, ensure to keep syntax and indentation standards!
                 After or statements in python, use a backslash to prevent syntax errors. This is very important!!!
-                When using comments in python, use triple single quotes. TRIPLE SINGLE QUOTES and never triple double quotes."""
+                When using multi-line comments in python, use triple double quotes or triple single quotes!!!"""
                 )
 
             chat_history = chat_history[::-1]
@@ -42,9 +48,11 @@ def debugger(prompt="", chat_history=[]):
                                 You are an excellent expert developer. You can be given a piece of code, with the corresponding errors
                                 that arose when trying to execute the said code. Your task is to fix this error. If the error is related
                                 to technical/algorithm failure you are required to fix it. But if its a dependency sort of error then return
-                                the command needs to be made to fix the dependency error. If you made changes to a file, return the filename
-                                as the key and the adjusted code as the value. If its a dependency error, make the key dependency_0, 
-                                dependency_1 and so on. Make sure your solution fixes the code by adhering to detail attentively.
+                                the command needs to be made to fix the dependency error. 
+                                
+                                If you made changes to a file, return the filename as the key and the adjusted code as the value.
+                                 f its a dependency error, make the key dependency_0, dependency_1 and so on. 
+                                 Make sure your solution fixes the code by adhering to detail attentively.
 
                                 """
                 )
@@ -84,7 +92,7 @@ def dependency_bot(prompt=""):
             print(f"Found the boring error: {e}")
 
 
-def executioner_bot(directory, prompt=""):
+def executioner_bot(directory="", prompt=""):
 
     code = genai.GenerativeModel(
         model_name='gemini-1.5-pro',
@@ -101,7 +109,6 @@ def executioner_bot(directory, prompt=""):
         
         
         """
-        f"The directory name {directory} all files can be access on through this directory so Example: python {directory}/hello_world.py, npm start, npm run dev"
         )
 
 
@@ -113,7 +120,7 @@ def executioner_bot(directory, prompt=""):
 def simple_bot(message=""):
     # For now, the bot just responds with "Hi" to any message.
     code = genai.GenerativeModel(
-        model_name='gemini-1.5-flash',
+        model_name='gemini-1.5-pro',
         system_instruction="""Give a brief high level technical overview of the code you may be given. Do not go over all the entire functions but
          rather try to ensure that you explain the working structure and alogrithms. Do not give tips. You're a professional,
          explain the code and algorithm that is in the code clearly. Do not try to explain each part of the code rather, give a high levl technical overview."""
