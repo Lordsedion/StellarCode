@@ -101,7 +101,6 @@ def executioner_bot(directory, prompt=""):
         
         
         """
-        f"The directory name {directory} all files can be access on through this directory so Example: python {directory}/hello_world.py, npm start, npm run dev"
         )
 
 
