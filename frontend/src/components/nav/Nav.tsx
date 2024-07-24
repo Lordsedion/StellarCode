@@ -291,8 +291,8 @@ const Nav = () => {
                             <p className='cat'>Stellar <div className='agle'><FaAngleDown /></div></p>
                             
                         </div>
-                        <div className="avatar">
-                            <img src={pp !== "http://localhost:8000/None" ? pp: avatar} alt="Image" className='avatar-img' onClick={handleAvatarClick} />
+                        <div className="avatar" onClick={()=>{console.log("PP", pp)}}>
+                            <img src={avatar} alt="Image" className='avatar-img' onClick={handleAvatarClick} />
                             <div className={`modal-nav-content ${dropdownOpen ? '' : 'hidden'}`} id='modal-nav'>
                                 <div className="nav-s-list">
                                     <p><span><AiOutlineRobot /></span> <div>MY GPT</div></p>

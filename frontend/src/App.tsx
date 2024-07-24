@@ -33,6 +33,8 @@ interface globalTypes {
     
     id_: any
     setId: (value:any)=>void
+
+    url: string
 }
 
 export const GlobalContext = createContext<globalTypes | undefined>(undefined)
@@ -83,39 +85,10 @@ function App() {
   const [refreshToken, setRefreshToken] = useState<string | null>(localStorage.getItem("refresh"))
   const [knowActive, setKnowActive] = useState("")
   const [profilePic, setProfilePic] = useState(localStorage.getItem("pp"))
+  // const url = "http://178.79.131.91"
+  const url = "http://localhost:8000"
 
-//   async function refresh (token:string) {
-//     const options = {
-//         method: 'POST',
-//         headers: {
-//         'Content-Type': 'application/json',
-//         'X-CSRFToken': getCookie('csrftoken')
-//         },
-//         body: JSON.stringify({"access_token": token})
-//     };
 
-//     const url = "http://localhost:8000/api/token/refresh"
-//     fetch(url, options)
-//     .then(response=> {
-//         if (!response.ok) {
-//             throw new Error("Response is not okay " + response.statusText)
-//         }
-//         else {
-//             return response.json()
-//         }
-//     })
-//     .then(data => {
-//         console.log(data)
-//         setAccessToken(data["access"])
-//         localStorage.setItem("refresh", data["access"])
-//       })
-//       .catch(error => {
-//         console.error('Error:', error); // Handle any errors that occur
-//         window.location.assign("http://localhost:8000/login/")
-//       });       
-
-// }
-  
   async function verifyAccess (token:string) {
     const options = {
         method: 'POST',
@@ -129,7 +102,7 @@ function App() {
         })
     };
 
-    const url_ = "http://localhost:8000/api/token_verify"
+    const url_ = `${url}/api/token_verify`
     fetch(url_, options)
     .then(response=> {
         if (!response.ok) {
@@ -145,6 +118,8 @@ function App() {
           console.log("Boss boss")
           setUserName(data["username"])
           setApiKey(data["apiKey"])
+          console.log("Verified")
+          
           // setAccessToken(data["token"])
           // localStorage.setItem("access", data["token"])
         }
@@ -153,14 +128,25 @@ function App() {
           setApiKey(data["apiKey"])
           setAccessToken(data["token"])
           localStorage.setItem("access", data["token"])
+          console.log("Almost verified")
         }
         else {
-          window.location.assign("http://localhost:8000/login/")
+          window.location.assign(`${url}/login/`)
+          localStorage.setItem("loggedOut","true")
         }
         
       })
       .catch(error => {
+        if (localStorage.getItem("loggedOut") === "true") {
+          //
+        } 
+        else {
+          localStorage.setItem("loggedOut","true") 
+          window.location.assign(`${url}/login/`)
+        }
+        localStorage.setItem("loggedOut","true")
         console.error('Error:', error); // Handle any errors that occur
+        
       });       
 
 }
@@ -183,7 +169,7 @@ function App() {
       knowActive, setKnowActive,
       username, setUserName,
       apiKey, setApiKey,
-      id_, setId,
+      id_, setId, url
       }}>
         <div className="app">
         <Outlet/>

@@ -152,7 +152,7 @@ const Dialogue = ({ text }: dialogue) => {
   const pp = global.profilePic!
   return (
     <div className="dialogue">
-      <img src={pp !== "http://localhost:8000/None" ? pp : avatar} alt="AI" />
+      <img src={avatar} alt="AI" />
       <p className="dialogue-content"><ReactMarkdown>{text}</ReactMarkdown></p>
     </div>
   )
@@ -385,8 +385,6 @@ const Chat = () => {
       socketRef.current.onclose = () => {
         console.log('WebSocket connection closed');
       };
-
-      // sendMessage2()
 
       return () => {
         socketRef.current.close()

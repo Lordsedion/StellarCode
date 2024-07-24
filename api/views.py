@@ -153,9 +153,11 @@ class RegisterView(generics.CreateAPIView):
                 )
 
                 profile = Profile.objects.create(
-                   serializer.validated_data["email"],
-                    credits=1000
+                   email=serializer.validated_data["email"],
+                   credits=1000,
+                   user = user
                 )
+                APIKey.objects.create(user=user)
                 login(request, user)
 
                 refresh = RefreshToken.for_user(user)
@@ -255,9 +257,12 @@ class CreateRoom(generics.CreateAPIView):
     def post(self, request):
         user = request.user
         print(f"User o {user}")
-
-        room_name = f'New Room {Room.objects.filter(user=request.user).order_by("-created_at").values()[0]["id"]}'
-
+        room_name = "Project1"
+        try:
+            room_name = f'New Room {Room.objects.filter(user=request.user).order_by("-created_at").values()[0]["id"]}'
+        
+        except:
+            room_name = "Project 1"
         room = Room.objects.create(
             name = room_name,
             user = request.user
