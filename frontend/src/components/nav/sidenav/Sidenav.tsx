@@ -115,7 +115,7 @@ const Sidenav = () => {
         },
     };
 
-    const url_ = "http://localhost:8000/api/room_view"
+    const url_ = "http://178.79.131.91/api/room_view"
     fetch(url_, options)
     .then(response=> {
         if (!response.ok) {

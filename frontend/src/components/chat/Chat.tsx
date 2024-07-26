@@ -359,11 +359,11 @@ const Chat = () => {
       input.removeEventListener('keypress', handleKeyPress);
     };
   }, [userChat, messages, id_]);
-
+  
   useEffect(() => {
-    console.log(`ws://localhost:8001/ws/chat/${id_}/?api_key=${apiKey}`, id, id_)
+    console.log(`ws://178.79.131.91:8002/ws/chat/${id_}/?api_key=${apiKey}`, id, id_)
     if (id_ !== "new") {
-      socketRef.current = new WebSocket(`ws://localhost:8001/ws/chat/${id_}/?api_key=${apiKey}`);
+      socketRef.current = new WebSocket(`ws://178.79.131.91:8002/ws/chat/${id_}/?api_key=${apiKey}`);
 
       // 2. Handle the connection open event
       socketRef.current.onopen = () => {
@@ -399,7 +399,7 @@ const Chat = () => {
     if (id_ === "new") {
       if (apiKey !== "" && userChat.trim() !== "") {
         const newRoomId = await createRoom();
-        socketRef.current = new WebSocket(`ws://localhost:8001/ws/chat/${newRoomId}/?api_key=${apiKey}`);
+        socketRef.current = new WebSocket(`ws://178.79.131.91:8002/ws/chat/${newRoomId}/?api_key=${apiKey}`);
 
         socketRef.current.onopen = () => {
           console.log('Connected to the WebSocket server in new room');
