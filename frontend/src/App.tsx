@@ -1,10 +1,6 @@
 import React, { createContext, useEffect, useState } from 'react';
 import './App.css';
-// import Nav from './components/nav/Nav';
-// import Sidenav from './components/nav/sidenav/Sidenav';
-// import Comb from './components/chat/Comb';
 import { Outlet } from 'react-router-dom';
-// import { GoogleOAuthProvider } from '@react-oauth/google';
 
 
 interface globalTypes {
@@ -69,6 +65,7 @@ export function getCookie(name:string) {
 
 
 function App() {
+  let loggedIn = false
   if (localStorage.getItem("theme") !== null) {
     localStorage.getItem("theme")
   }  
@@ -119,6 +116,7 @@ function App() {
           setUserName(data["username"])
           setApiKey(data["apiKey"])
           console.log("Verified")
+          loggedIn = true
           
           // setAccessToken(data["token"])
           // localStorage.setItem("access", data["token"])
@@ -131,18 +129,18 @@ function App() {
           console.log("Almost verified")
         }
         else {
-          window.location.assign(`${url}/login/`)
+          window.location.assign(`${url}/signup/`)
           localStorage.setItem("loggedOut","true")
         }
         
       })
       .catch(error => {
-        if (localStorage.getItem("loggedOut") === "true") {
+        if (loggedIn) {
           //
         } 
         else {
           localStorage.setItem("loggedOut","true") 
-          window.location.assign(`${url}/login/`)
+          window.location.replace(`${url}/signup/`)
         }
         localStorage.setItem("loggedOut","true")
         console.error('Error:', error); // Handle any errors that occur

@@ -97,7 +97,7 @@ def executioner_bot(directory, prompt=""):
 
         You are to return the command that will execute the given code on a shell terminal.
         Return a command that will run on the terminal without error. This is of the utmost importance. Do not return a command that
-        will cause an error when type into a terminal. DO NOT!!! I REPEAT, DO NOT!!!
+        will cause an error when type into a terminal. DO NOT!!! I REPEAT, DO NOT!!! To run a snake game code, use python agent.py
         
         
         """
