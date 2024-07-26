@@ -209,6 +209,8 @@ const Signup = () => {
                                 </div>
                                 <a href="#" className='stress'>Forgot password?</a>
                                 <button className='sub-log'>Sign in</button>
+                                <h4 style={{padding: "0.5rem 0"}}>Have an account already? <a className='color-primary' href="/login/">Sign in</a></h4>
+
                                 <GoogleSignIn/>
                             </form>
                         </div>

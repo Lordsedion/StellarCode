@@ -26,6 +26,9 @@ interface globalTypes {
 
     profilePic: any
     setProfilePic: (value:any)=>void
+
+    loggedIn: boolean
+    setLoggedIn: (value:any)=>void
     
     id_: any
     setId: (value:any)=>void
@@ -65,7 +68,6 @@ export function getCookie(name:string) {
 
 
 function App() {
-  let loggedIn = false
   if (localStorage.getItem("theme") !== null) {
     localStorage.getItem("theme")
   }  
@@ -74,6 +76,7 @@ function App() {
   }
   
   const [theme, setTheme] = useState(localStorage.getItem("theme"))
+  const [loggedIn, setLoggedIn] = useState(false)
   const [close, setClose] = useState(false)
   const [id_, setId] = useState("new")
   const [username, setUserName] = useState("")
@@ -116,7 +119,7 @@ function App() {
           setUserName(data["username"])
           setApiKey(data["apiKey"])
           console.log("Verified")
-          loggedIn = true
+          setLoggedIn(true)
           
           // setAccessToken(data["token"])
           // localStorage.setItem("access", data["token"])
@@ -130,19 +133,10 @@ function App() {
         }
         else {
           window.location.assign(`${url}/signup/`)
-          localStorage.setItem("loggedOut","true")
         }
         
       })
       .catch(error => {
-        if (loggedIn) {
-          //
-        } 
-        else {
-          localStorage.setItem("loggedOut","true") 
-          window.location.replace(`${url}/signup/`)
-        }
-        localStorage.setItem("loggedOut","true")
         console.error('Error:', error); // Handle any errors that occur
         
       });       
@@ -167,7 +161,8 @@ function App() {
       knowActive, setKnowActive,
       username, setUserName,
       apiKey, setApiKey,
-      id_, setId, url
+      id_, setId, url,
+      loggedIn, setLoggedIn
       }}>
         <div className="app">
         <Outlet/>

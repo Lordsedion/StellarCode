@@ -183,6 +183,7 @@ const Login = () => {
                                     </div>
                                     <a href="#" className='stress'>Forgot password?</a>
                                     <button className='sub-log' id='sub-login'>Sign in</button>
+                                    <h4 style={{padding: "0.5rem 0"}}>Don't have an account yet? <a className='color-primary' href="/signup/">Sign up</a></h4>
                                     <div>
                                         <GoogleLogin
                                             clientId={clientId}
