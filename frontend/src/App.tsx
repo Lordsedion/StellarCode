@@ -86,7 +86,7 @@ function App() {
   const [knowActive, setKnowActive] = useState("")
   const [profilePic, setProfilePic] = useState(localStorage.getItem("pp"))
   // const url = "http://178.79.131.91"
-  const url = "http://localhost:8000"
+  const url = "http://178.79.131.91/"
 
 
   async function verifyAccess (token:string) {

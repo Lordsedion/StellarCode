@@ -59,7 +59,7 @@ const Signup = () => {
             body: JSON.stringify({"access_token": token})
         };
 
-        const url = "http://localhost:8000/api/token"
+        const url = "http://178.79.131.91/api/token"
         fetch(url, options)
         .then(response=> {
             if (!response.ok) {
@@ -80,7 +80,7 @@ const Signup = () => {
             localStorage.setItem("pp", data["response"]["picture"])
 
             console.log("abeg", localStorage.getItem("pp"), localStorage.getItem("email"))
-            window.location.assign("http://localhost:8000") 
+            window.location.assign("http://178.79.131.91/") 
             
           })
           .catch(error => {
@@ -109,7 +109,7 @@ const Signup = () => {
         console.log("An error occurred ", error)
     }
 
-    const url = "http://localhost:8000/api/signup"
+    const url = "http://178.79.131.91/api/signup"
     const userData = {
         "email": email,
         "password": password,
@@ -153,7 +153,7 @@ const Signup = () => {
 
             console.log(localStorage.getItem("pp"), localStorage.getItem("email"))
             localStorage.setItem("firstName", getFirstPartOfEmail(data["user"]["email"]))
-            window.location.assign("http://localhost:8000") 
+            window.location.assign("http://178.79.131.91/") 
             
           })
           .catch(error => {

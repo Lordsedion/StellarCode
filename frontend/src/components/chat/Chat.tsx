@@ -264,7 +264,7 @@ const Chat = () => {
 
 
   async function createRoom() {
-    const url = "http://localhost:8000/api/create_room"
+    const url = "http://178.79.131.91/api/create_room"
     const options = {
       method: 'POST',
       headers: {
@@ -294,7 +294,7 @@ const Chat = () => {
       });
   }
   async function postData() {
-    const url = "http://localhost:8000/api/view_message"
+    const url = "http://178.79.131.91/api/view_message"
     const options = {
       method: 'POST',
       headers: {
